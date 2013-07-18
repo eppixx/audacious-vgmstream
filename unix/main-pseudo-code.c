@@ -56,7 +56,7 @@ void vgmstream_play_loop()
 		{
 			render_vgmstream(puffer, samples_to_do, vgmstream)
 
-			//fading
+			//fading pasted from code
 			if (vgmstream->loop_flag && fade_length_samples > 0 && !loop_forever) 
 			{
 	            int samples_into_fade = decode_pos_samples - (stream_length_samples - fade_length_samples);

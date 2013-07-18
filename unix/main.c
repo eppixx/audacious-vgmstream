@@ -73,34 +73,34 @@ void* vgmstream_play_loop(InputPlayback *playback)
       seek_needed_samples = (long long)decode_seek * vgmstream->sample_rate / 1000L;
       if (seek_needed_samples < decode_pos_samples)
       {
-	/* go back in time, reopen file */
-	reset_vgmstream(vgmstream);
-	decode_pos_samples = 0;
-	samples_to_do = seek_needed_samples;
+      	/* go back in time, reopen file */
+      	reset_vgmstream(vgmstream);
+      	decode_pos_samples = 0;
+      	samples_to_do = seek_needed_samples;
       }
       else if (decode_pos_samples < seek_needed_samples)
       {
-	/* go forward in time */
-	samples_to_do = seek_needed_samples - decode_pos_samples;
+      	/* go forward in time */
+      	samples_to_do = seek_needed_samples - decode_pos_samples;
       }
       else
       {
-	/* seek to where we are, how convenient */
-	samples_to_do = -1;
+      	/* seek to where we are, how convenient */
+      	samples_to_do = -1;
       }
       /* do the actual seeking */
       if (samples_to_do >= 0)
       {
-	while (samples_to_do > 0)
-	{
-	  l = min(576,samples_to_do);
-	  render_vgmstream(buffer,l,vgmstream);
-	  samples_to_do -= l;
-	  decode_pos_samples += l;
-	}
-	playback->output->flush(decode_seek);
-	// reset eof flag
-	playback->eof = 0;
+      	while (samples_to_do > 0)
+      	{
+      	  l = min(576,samples_to_do);
+      	  render_vgmstream(buffer,l,vgmstream);
+      	  samples_to_do -= l;
+      	  decode_pos_samples += l;
+      	}
+      	playback->output->flush(decode_seek);
+      	// reset eof flag
+      	playback->eof = 0;
       }
       // reset decode_seek
       decode_seek = -1;
@@ -116,35 +116,35 @@ void* vgmstream_play_loop(InputPlayback *playback)
       l = (samples_to_do * vgmstream->channels*2);
       if (!l)
       {
-	playback->eof = 1;
-	// will trigger on next run through
+      	playback->eof = 1;
+      	// will trigger on next run through
       }
       else
       {
-	// ok we read stuff
-	render_vgmstream(buffer,samples_to_do,vgmstream);
+      	// ok we read stuff
+      	render_vgmstream(buffer,samples_to_do,vgmstream);
 
-    // fade!
-    if (vgmstream->loop_flag && fade_length_samples > 0 && !loop_forever) {
-        int samples_into_fade = decode_pos_samples - (stream_length_samples - fade_length_samples);
-        if (samples_into_fade + samples_to_do > 0) {
-            int j,k;
-            for (j=0;j<samples_to_do;j++,samples_into_fade++) {
-                if (samples_into_fade > 0) {
-                    double fadedness = (double)(fade_length_samples-samples_into_fade)/fade_length_samples;
-                    for (k=0;k<vgmstream->channels;k++) {
-                        buffer[j*vgmstream->channels+k] =
-                            (short)(buffer[j*vgmstream->channels+k]*fadedness);
-                    }
-                }
-            }
-        }
-    }
+          // fade!
+          if (vgmstream->loop_flag && fade_length_samples > 0 && !loop_forever) {
+              int samples_into_fade = decode_pos_samples - (stream_length_samples - fade_length_samples);
+              if (samples_into_fade + samples_to_do > 0) {
+                  int j,k;
+                  for (j=0;j<samples_to_do;j++,samples_into_fade++) {
+                      if (samples_into_fade > 0) {
+                          double fadedness = (double)(fade_length_samples-samples_into_fade)/fade_length_samples;
+                          for (k=0;k<vgmstream->channels;k++) {
+                              buffer[j*vgmstream->channels+k] =
+                                  (short)(buffer[j*vgmstream->channels+k]*fadedness);
+                          }
+                      }
+                  }
+              }
+          }
 
-    // pass it on
-	playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , &playback->playing );
+          // pass it on
+      	playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , &playback->playing );
 
-	decode_pos_samples += samples_to_do;
+      	decode_pos_samples += samples_to_do;
       }
     }
     else
@@ -224,9 +224,11 @@ void vgmstream_play(InputPlayback *context)
   stream_length_samples = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,vgmstream);
   if (vgmstream->loop_flag)
   {
-      fade_length_samples = settings.fadeseconds * vgmstream->sample_rate;
-  } else {
-      fade_length_samples = -1;
+    fade_length_samples = settings.fadeseconds * vgmstream->sample_rate;
+  } 
+  else 
+  {
+    fade_length_samples = -1;
   }
   gint ms = (stream_length_samples * 1000LL) / vgmstream->sample_rate;
   gint rate   = vgmstream->sample_rate * 2 * vgmstream->channels;
