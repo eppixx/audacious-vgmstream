@@ -1,7 +1,7 @@
 #include <audacious/util.h>
 
 void vgmstream_init();
-void vgmstream_about();
+// void vgmstream_about();
 void vgmstream_configure();
 void vgmstream_destroy();
 void vgmstream_play(InputPlayback *context);
@@ -13,7 +13,15 @@ void vgmstream_mseek(InputPlayback *context,gulong ms);
 void vgmstream_file_info_box(const gchar *pFile);
 Tuple * vgmstream_probe_for_tuple(const gchar *uri, VFSFile *fd);
 
-gchar *vgmstream_exts [] = {
+static const char vgmstream_about[] =
+{
+  "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
+    "audacious-vgmstream written by Todd Jeffreys (http://voidpointer.org/) and modified by Thomas Eppers\n"
+    "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
+}
+
+static const gchar *vgmstream_exts [] = 
+{
   "2dx9",
   "2pfs",
 
@@ -286,20 +294,21 @@ gchar *vgmstream_exts [] = {
 };
 
 
-InputPlugin vgmstream_iplug = {
-  .description = "VGMStream Decoder",
+AUD_INPUT_PLUGIN
+(
+  .name = "VGMStream Decoder",
   .init = vgmstream_init,
-  .about = vgmstream_about,
-  .configure = vgmstream_configure,
+  // .about_text = vgmstream_about, 
+  .configure = vgmstream_configure,     //maybe prefs in the future
   .cleanup = vgmstream_destroy,
   .probe_for_tuple = vgmstream_probe_for_tuple,
   .play_file = vgmstream_play,
   .stop = vgmstream_stop,
   .pause = vgmstream_pause,
   .seek = vgmstream_seek,
-  .vfs_extensions = vgmstream_exts,
+  .extensions = vgmstream_exts,
   .mseek = vgmstream_mseek,
-  .file_info_box = vgmstream_file_info_box,
-};
+  // .file_info_box = vgmstream_file_info_box, //optional
+)
 
 

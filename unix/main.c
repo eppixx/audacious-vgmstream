@@ -23,7 +23,7 @@
 extern InputPlugin vgmstream_iplug;
 //static CDecoder decoder;
 static volatile long decode_seek;
-static GThread *decode_thread;
+// static GThread *decode_thread;
 static GCond *ctrl_cond = NULL;
 static GMutex *ctrl_mutex = NULL;
 static gint stream_length_samples;
@@ -35,11 +35,18 @@ static gchar strPlaying[260];
 static InputPlugin *vgmstream_iplist[] = { &vgmstream_iplug, NULL };
 static gint loop_forever = 0;
 
+//***testing***
+static gint playing;
+static gint eof;
+
 void vgmstream_mseek(InputPlayback *data,gulong ms);
 
-#define CLOSE_STREAM() do { \
-   if (vgmstream) close_vgmstream(vgmstream); \
-   vgmstream = NULL; } while (0)
+#define CLOSE_STREAM() \
+  do { \
+   if (vgmstream) \
+    close_vgmstream(vgmstream); \
+   vgmstream = NULL; \
+  } while (0)
 
 SIMPLE_INPUT_PLUGIN(vgmstream,vgmstream_iplist);
 
@@ -52,12 +59,12 @@ void* vgmstream_play_loop(InputPlayback *playback)
   gint seek_needed_samples;
   gint samples_to_do;
   decode_seek = -1;
-  playback->playing = 1;
-  playback->eof = 0;
+  playing = 1;
+  eof = 0;
   
   decode_pos_samples = 0;
 
-  while (playback->playing)
+  while (playing)
   {
     // ******************************************
     // Seeking
@@ -100,7 +107,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
       	}
       	playback->output->flush(decode_seek);
       	// reset eof flag
-      	playback->eof = 0;
+      	eof = 0;
       }
       // reset decode_seek
       decode_seek = -1;
@@ -109,14 +116,14 @@ void* vgmstream_play_loop(InputPlayback *playback)
     // ******************************************
     // Playback
     // ******************************************
-    if (!playback->eof)
+    if (!eof)
     {
       // read data and pass onward
       samples_to_do = min(576,stream_length_samples - (decode_pos_samples + 576));
       l = (samples_to_do * vgmstream->channels*2);
       if (!l)
       {
-      	playback->eof = 1;
+      	eof = 1;
       	// will trigger on next run through
       }
       else
@@ -152,23 +159,23 @@ void* vgmstream_play_loop(InputPlayback *playback)
       // at EOF
       while (playback->output->buffer_playing())
         g_usleep(10000);
-      playback->playing = 0;
+      playing = 0;
       // this effectively ends the loop
     }
   }
  exit_thread:
   decode_seek = -1;
-  playback->playing = 0;
+  playing = 0;
   decode_pos_samples = 0;
   CLOSE_STREAM();
 
   return 0;
 }
 
-void vgmstream_about()
-{
-  vgmstream_gui_about();
-}
+// void vgmstream_about()
+// {
+//   vgmstream_gui_about();
+// }
 
 void vgmstream_configure()
 {
@@ -236,9 +243,10 @@ void vgmstream_play(InputPlayback *context)
   Tuple * tuple = tuple_new_from_filename(context->filename);
   tuple_associate_int(tuple, FIELD_LENGTH, NULL, ms);
   tuple_associate_int(tuple, FIELD_BITRATE, NULL, rate);
+  //tuple_associate_str(tuple,FIELD_QUALITY , NULL, "lossless");
   context->set_tuple(context, tuple);
   
-  decode_thread = g_thread_self();
+  // decode_thread = g_thread_self();
   context->set_pb_ready(context);
   vgmstream_play_loop(context);
 
@@ -319,3 +327,4 @@ void vgmstream_file_info_box(const gchar *pFile)
     audacious_info_dialog("File information",msg,"OK",FALSE,NULL,NULL);
   }
 }
+
