@@ -133,12 +133,73 @@ void vgmstream_mseek(InputPlayback *data, gulong ms)
 
 void vgmstream_play(InputPlayback *context)
 {
+	vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(context->filename))
+	if (!vgmstream || vgmstream->channels <= 0)
+	{
+		CLOSE_STREAM()
+		goto end_thread;
+	}
 
+	strcpy(strPlaying, context-filename) //copy file name
+
+	//get samples
+	stream_length_samples = get_vgmstream_play_samples(settings.loopcount, 
+		settings.fadeseconds,
+		settings.fadedelayseconds
+		vgmstream)
+
+	if (vgmstream->loop_flag)
+	{
+		//set the amount of samples that need fading
+		fade_length_samples = settings.fadeseconds * vgmstream->sample_rate
+	}
+	else
+	{
+		//set default
+		fade_length_samples = -1
+	}
+
+	//amount of time for track
+	gint ms = (stream_length_samples * 1000LL) / vgmstream->sample_rate
+	//the rate of the track
+	gint rate = vgmstream->sample_rate * 2 * vgmstream->channels
+
+	//create new tuple
+	Tuple *tuple = tuple_new_from_filename(context->filename)
+	//set tuple fields
+	tuple_associate_int(tuple, FIELD_LENGTH, NULL, ms)
+	tuple_associate_int(tuple, FIELD_BITRATE, NULL, rate)
+	//set new tuple
+	context->set_tuple(context, tuple)
+
+	decode_thread = g_thread_self() //unnütz?
+	context->set_pb_ready(context)  //set playback ready 
+	vgmstream_play_loop(context)	//call own fkt
+
+	end_thread:
+	g_mutex_lock(ctrl_mutex)
+	g_cond_signal(ctrl_cond)
+	g_mutex_unlock(ctrl_mutex)
 }
 
-void vgmstream_pause(InputPlayback *context)//, gshort paused)
+void vgmstream_stop(InputPlayback *context)
 {
-	context->output->pause(true)
+	if (vgmstream)
+	{
+		// schließe thread
+		decode_seek = ende
+		//warten bis geschlossen
+		g_mutex_lock(ctrl_mutex)
+		g_cond_wait(ctrl_cond, ctrl_mutex)
+		g_mutex_unlock(ctrl_mutex)
+	}
+	context->output->close_audio()
+	CLOSE_STREAM()
+}
+
+void vgmstream_pause(InputPlayback *context, gboolean pause)
+{
+	context->output->pause(pause)
 }
 
 void vgmstream_seek(InputPlayback *context, gint time)
@@ -148,15 +209,49 @@ void vgmstream_seek(InputPlayback *context, gint time)
 
 Tuple * vgmstream_probe_for_tuple(const gchar * filename, VFSFile * file)
 {
+	VGMSTREAM *infostream = NULL
+	Tuple *tuple = NULL
+	long length
 
+	infostream = init_vgmstream_from_STREAMFILE(open_vfs(filename))
+	if (!infostream)
+		goto fail
+
+	tuple = tuple_new_from_filename(filename)
+
+	gint samples = get_vgmstream_play_samples(settings.loopcount,
+		settings.fadeseconds,
+		settings.fadedelayseconds,
+		infostream) 
+
+	length = samples * 1000LL / infostream->sample_rate;)
+	tuple_associate_int(tuple, FIELD_LENGTH, NULL, length)
+
+	close vgmstream(infostream)
+
+	return tuple
+
+	fail:
+	if (tuple)
+		tuple_free(tuple)
+
+	if (infostream)
+		close_vgmstream(infostream)
+
+	return NULL 
 }
 
-void vgmstream_file_info_box(const gchar *pFile)
+void vgmstream_file_info_box(const gchar *pFile) //optional
 {
+	char msg[1024] = {0} //puffer
 	VGMSTREAM *stream
 
-
-
+	if ((stream = init_vgmstream_from_STREAMFILE(open_vfs(pFile))))
+	{
+		describe_vgmstream(stream, msg, sizeof(msg)) //call von vgmstream
+		close_vgmstream(stream) //schließe eben geöffneten stream wieder
+		file_info_box("File information", msg, "OK", FALSE, NULL, NULL)
+	}
 }
 
 /*
