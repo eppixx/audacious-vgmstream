@@ -1,14 +1,28 @@
-#include <audacious/util.h>
-#include <audacious/configdb.h>
-#include <glib.h>
+// #include <audacious/util.h>
+// #include <audacious/configdb.h>
+// #include <glib.h>
 #include <gtk/gtk.h>
-#include "gui.h"
-#include "version.h"
-#include "settings.h"
-#include <stdio.h>
-#include <stdarg.h>
+// #include "gui.h"
+// #include "version.h"
+// #include "settings.h"
+// #include <stdio.h>
+// #include <stdarg.h>
 
-extern SETTINGS settings;
+#include <glib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#include <audacious/plugin.h>
+#include <audacious/i18n.h>
+
+#include "version.h"
+#include "../src/vgmstream.h"
+#include "gui.h"
+#include "vfs.h"
+// #include "settings.h"
+
+// extern SETTINGS settings;
 static GtkWidget *about_box;
 static GtkWidget *config_win;
 static GtkWidget *loopcount_win;
@@ -88,33 +102,33 @@ static int ToInt(const char *pText,int *val)
 
 static void OnOK()
 {
-  SETTINGS s;
+  // SETTINGS s;
   // update my variables
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(loopcount_win)),&s.loopcount))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(loopcount_win)),1))
   {
     DisplayError("Invalid loop times entry.");
     return;
   }
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadeseconds_win)),&s.fadeseconds))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadeseconds_win)),0))
   {
     DisplayError("Invalid fade delay entry.");
     return;
   }
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadedelayseconds_win)),&s.fadedelayseconds))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadedelayseconds_win)),0))
   {
     DisplayError("Invalid fade length entry.");
     return;
   }
 
-  if (SaveSettings(&s))
-  {
-    settings = s;		/* update local copy */
-    gtk_widget_destroy(config_win);
-  }
-  else
-  {
-    DisplayError("Unable to save settings\n");
-  }
+  // if (SaveSettings(&s))
+  // {
+  //   // settings = s;		/* update local copy */
+  //   gtk_widget_destroy(config_win);
+  // }
+  // else
+  // {
+  //   DisplayError("Unable to save settings\n");
+  // }
 }
 
 void vgmstream_gui_about()
@@ -169,7 +183,8 @@ void vgmstream_gui_configure()
 
   loopcount_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(loopcount_win),TRUE);
-  sprintf(buf,"%i",settings.loopcount);
+  // sprintf(buf,"%i",settings.loopcount);
+  sprintf(buf,"%i",1);
   gtk_entry_set_text(GTK_ENTRY(loopcount_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),loopcount_win,FALSE,FALSE,0);
 
@@ -181,7 +196,8 @@ void vgmstream_gui_configure()
   
   fadeseconds_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(fadeseconds_win),TRUE);
-  sprintf(buf,"%i",settings.fadeseconds);
+  // sprintf(buf,"%i",settings.fadeseconds);
+  sprintf(buf,"%i",0);
   gtk_entry_set_text(GTK_ENTRY(fadeseconds_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),fadeseconds_win,FALSE,FALSE,0);
 
@@ -193,7 +209,8 @@ void vgmstream_gui_configure()
 
   fadedelayseconds_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(fadedelayseconds_win),TRUE);
-  sprintf(buf,"%i",settings.fadedelayseconds);
+  // sprintf(buf,"%i",settings.fadedelayseconds);
+  sprintf(buf,"%i",0);
   gtk_entry_set_text(GTK_ENTRY(fadedelayseconds_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),fadedelayseconds_win,FALSE,FALSE,0);
 

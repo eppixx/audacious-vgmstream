@@ -1,4 +1,18 @@
-#include <audacious/util.h>
+// #include <audacious/util.h>
+#include <glib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#include <audacious/plugin.h>
+#include <audacious/i18n.h>
+
+#include "version.h"
+#include "../src/vgmstream.h"
+#include "gui.h"
+#include "vfs.h"
+// #include "settings.h"
+
 
 void vgmstream_init();
 // void vgmstream_about();
@@ -18,7 +32,7 @@ static const char vgmstream_about[] =
   "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
     "audacious-vgmstream written by Todd Jeffreys (http://voidpointer.org/) and modified by Thomas Eppers\n"
     "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
-}
+};
 
 static const gchar *vgmstream_exts [] = 
 {
@@ -302,10 +316,10 @@ AUD_INPUT_PLUGIN
   .configure = vgmstream_configure,     //maybe prefs in the future
   .cleanup = vgmstream_destroy,
   .probe_for_tuple = vgmstream_probe_for_tuple,
-  .play_file = vgmstream_play,
+  .play = vgmstream_play,
   .stop = vgmstream_stop,
   .pause = vgmstream_pause,
-  .seek = vgmstream_seek,
+  // .seek = vgmstream_seek,
   .extensions = vgmstream_exts,
   .mseek = vgmstream_mseek,
   // .file_info_box = vgmstream_file_info_box, //optional

@@ -254,11 +254,4 @@ void vgmstream_file_info_box(const gchar *pFile) //optional
 	}
 }
 
-/*
-muss:
-	char * const * extensions 		// dateiendungen vgm/unix/data.c	
-
-
-
-*/
 

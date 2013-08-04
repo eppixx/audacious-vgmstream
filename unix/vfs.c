@@ -1,16 +1,31 @@
-#include <audacious/util.h>
-#include <audacious/configdb.h>
-#include <audacious/plugin.h>
-#include <audacious/output.h>
-#include <audacious/i18n.h>
-#include <glib.h>
+// #include <audacious/util.h>
+// #include <audacious/configdb.h>
+// #include <audacious/plugin.h>
+// #include <audacious/output.h>
+// #include <audacious/i18n.h>
+// #include <glib.h>
 
+// #include <unistd.h>
+// #include <pthread.h>
+// #include <stdlib.h>
+// #include "version.h"
+// #include "../src/vgmstream.h"
+// #include "vfs.h"
+
+#include <glib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
+
+#include <audacious/plugin.h>
+#include <audacious/i18n.h>
+
 #include "version.h"
 #include "../src/vgmstream.h"
+#include "gui.h"
 #include "vfs.h"
+#include "settings.h"
+
 
 /* vfs_dup doesn't actually work, it just returns us the same pointer
    as the one we pass in.  Therefore, the offset optimization doesn't work.
@@ -135,7 +150,7 @@ static STREAMFILE *open_vfs_by_VFSFILE(VFSFile *file,const char *path)
 
 STREAMFILE *open_vfs(const char *path)
 {
-  VFSFile *vfsFile = aud_vfs_fopen(path,"rb");
+  VFSFile *vfsFile = vfs_fopen(path,"rb");
   if (!vfsFile)
     return NULL;
 

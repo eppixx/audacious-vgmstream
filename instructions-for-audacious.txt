@@ -22,3 +22,13 @@ make -f Makefile.unix
 
 7. install
 sudo make -f Makefile.unix install
+
+
+for convinience use lndir to link the directory
+mkdir build
+cd build
+lndir ../vgm
+./bootstrap
+./configure
+make -f Makefile.unix
+sudo cp unix/.libs/libvgmstream.so /usr/lib/x86_64-linux-gnu/audacious/Input/libvgmstream.so 

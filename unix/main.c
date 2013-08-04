@@ -10,7 +10,7 @@
 #include "../src/vgmstream.h"
 #include "gui.h"
 #include "vfs.h"
-#include "settings.h"
+// #include "settings.h"
 
 #define TM_QUIT 0
 #define TM_PLAY 1
@@ -23,16 +23,16 @@
 extern InputPlugin vgmstream_iplug;
 //static CDecoder decoder;
 static volatile long decode_seek;
-// static GThread *decode_thread;
+// static GThread *decode_thread; //Sinn?
 static GCond *ctrl_cond = NULL;
 static GMutex *ctrl_mutex = NULL;
 static gint stream_length_samples;
 static gint fade_length_samples;
-SETTINGS settings;
+// SETTINGS settings;
 static gint decode_pos_samples = 0;
 static VGMSTREAM *vgmstream = NULL;
-static gchar strPlaying[260];
-static InputPlugin *vgmstream_iplist[] = { &vgmstream_iplug, NULL };
+// static gchar strPlaying[260]; //Sinn?
+// static InputPlugin *vgmstream_iplist[] = { &vgmstream_iplug, NULL };
 static gint loop_forever = 0;
 
 //***testing***
@@ -48,7 +48,7 @@ void vgmstream_mseek(InputPlayback *data,gulong ms);
    vgmstream = NULL; \
   } while (0)
 
-SIMPLE_INPUT_PLUGIN(vgmstream,vgmstream_iplist);
+// SIMPLE_INPUT_PLUGIN(vgmstream,vgmstream_iplist);
 
 #define DS_EXIT -2
 
@@ -61,7 +61,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
   decode_seek = -1;
   playing = 1;
   eof = 0;
-  
+
   decode_pos_samples = 0;
 
   while (playing)
@@ -112,7 +112,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
       // reset decode_seek
       decode_seek = -1;
     }
-    
+
     // ******************************************
     // Playback
     // ******************************************
@@ -149,7 +149,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
           }
 
           // pass it on
-      	playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , &playback->playing );
+      	// playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , playing );
 
       	decode_pos_samples += samples_to_do;
       }
@@ -184,7 +184,7 @@ void vgmstream_configure()
 
 void vgmstream_init()
 {
-  LoadSettings(&settings);
+  // LoadSettings(&settings);
   ctrl_cond = g_cond_new();
   ctrl_mutex = g_mutex_new();
 }
@@ -202,53 +202,90 @@ void vgmstream_mseek(InputPlayback *data,gulong ms)
   if (vgmstream)
   {
     decode_seek = ms;
-    data->eof = 0;
-    
+    eof = 0;
+
     while (decode_seek != -1)
       g_usleep(10000);
   }
 }
 
-void vgmstream_play(InputPlayback *context)
+void vgmstream_play(InputPlayback *context, const char *filename, 
+  VFSFile * file, int start_time, int stop_time, bool_t pause)
 {
-  // this is now called in a new thread context
-  vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(context->filename));
-  if (!vgmstream || vgmstream->channels <= 0)
+  vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(filename));
+
+  if (!vgmstream || vgmstream->channels <= 0)  
   {
-    CLOSE_STREAM();
-    goto end_thread;
-  }
-  // open the audio device
-  if (context->output->open_audio(FMT_S16_LE,vgmstream->sample_rate,vgmstream->channels) == 0)
-  {
+    printf("Channels are zero or couldn't init plugin\n");
     CLOSE_STREAM();
     goto end_thread;
   }
 
-  /* copy file name */
-  strcpy(strPlaying,context->filename);
-  // set the info
-  stream_length_samples = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,vgmstream);
-  if (vgmstream->loop_flag)
+  if (! context->output->open_audio(FMT_S16_LE, vgmstream->sample_rate, vgmstream->channels))
   {
-    fade_length_samples = settings.fadeseconds * vgmstream->sample_rate;
-  } 
-  else 
-  {
-    fade_length_samples = -1;
+    printf("couldn't open audio device\n");
+    CLOSE_STREAM();
+    goto end_thread;
   }
+
+  // stream_length_samples = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,vgmstream);
+  stream_length_samples = get_vgmstream_play_samples(1,0,0,vgmstream);
+  if (vgmstream->loop_flag)
+    // fade_length_samples = settings.fadeseconds * vgmstream->sample_rate;
+    fade_length_samples = 0 * vgmstream->sample_rate;
+  else
+    fade_length_samples = -1;
+
   gint ms = (stream_length_samples * 1000LL) / vgmstream->sample_rate;
   gint rate   = vgmstream->sample_rate * 2 * vgmstream->channels;
 
-  Tuple * tuple = tuple_new_from_filename(context->filename);
-  tuple_associate_int(tuple, FIELD_LENGTH, NULL, ms);
-  tuple_associate_int(tuple, FIELD_BITRATE, NULL, rate);
-  //tuple_associate_str(tuple,FIELD_QUALITY , NULL, "lossless");
-  context->set_tuple(context, tuple);
-  
-  // decode_thread = g_thread_self();
-  context->set_pb_ready(context);
-  vgmstream_play_loop(context);
+Tuple * tuple = tuple_new_from_filename(filename);
+tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
+tuple_set_int(tuple, FIELD_BITRATE, NULL, rate);
+//tuple_set_str(tuple,FIELD_QUALITY , NULL, "lossless"); //eigen ?erweitern?
+context->set_tuple(context, tuple);
+
+context->set_pb_ready(context);
+vgmstream_play_loop(context);
+
+//   // this is now called in a new thread context
+//   vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(context->filename));
+//   if (!vgmstream || vgmstream->channels <= 0)
+//   {
+//     CLOSE_STREAM();
+//     goto end_thread;
+//   }
+//   // open the audio device
+//   if (context->output->open_audio(FMT_S16_LE,vgmstream->sample_rate,vgmstream->channels) == 0)
+//   {
+//     CLOSE_STREAM();
+//     goto end_thread;
+//   }
+
+//   /* copy file name */
+//   strcpy(strPlaying,context->filename);
+//   // set the info
+//   stream_length_samples = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,vgmstream);
+//   if (vgmstream->loop_flag)
+//   {
+//     fade_length_samples = settings.fadeseconds * vgmstream->sample_rate;
+//   }
+//   else
+//   {
+//     fade_length_samples = -1;
+//   }
+//   gint ms = (stream_length_samples * 1000LL) / vgmstream->sample_rate;
+//   gint rate   = vgmstream->sample_rate * 2 * vgmstream->channels;
+
+//   Tuple * tuple = tuple_new_from_filename(context->filename);
+//   tuple_associate_int(tuple, FIELD_LENGTH, NULL, ms);
+//   tuple_associate_int(tuple, FIELD_BITRATE, NULL, rate);
+//   //tuple_associate_str(tuple,FIELD_QUALITY , NULL, "lossless");
+//   context->set_tuple(context, tuple);
+
+//   // decode_thread = g_thread_self();
+//   context->set_pb_ready(context);
+//   vgmstream_play_loop(context);
 
 end_thread:
   g_mutex_lock(ctrl_mutex);
@@ -269,7 +306,7 @@ void vgmstream_stop(InputPlayback *context)
     // close audio output
   }
   context->output->close_audio();
-  // cleanup 
+  // cleanup
   CLOSE_STREAM();
 }
 
@@ -295,16 +332,17 @@ Tuple * vgmstream_probe_for_tuple(const gchar * filename, VFSFile * file)
 
   tuple = tuple_new_from_filename (filename);
 
-  length = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,infostream) * 1000LL / infostream->sample_rate;
-  tuple_associate_int(tuple, FIELD_LENGTH, NULL, length);
+  // length = get_vgmstream_play_samples(settings.loopcount,settings.fadeseconds,settings.fadedelayseconds,infostream) * 1000LL / infostream->sample_rate;
+  length = get_vgmstream_play_samples(1,0,0,infostream) * 1000LL / infostream->sample_rate;
+  tuple_set_int(tuple, FIELD_LENGTH, NULL, length);
 
   close_vgmstream(infostream);
 
   return tuple;
-  
+
 fail:
     if (tuple) {
-        tuple_free(tuple);
+        tuple_unref(tuple);
     }
     if (infostream)
     {
@@ -313,18 +351,52 @@ fail:
     return NULL;
 }
 
-void vgmstream_file_info_box(const gchar *pFile)
-{
-  char msg[1024] = {0};
-  VGMSTREAM *stream;
-  
-  if ((stream = init_vgmstream_from_STREAMFILE(open_vfs(pFile))))
-  {
-    describe_vgmstream(stream,msg,sizeof(msg));
-    
-    close_vgmstream(stream);
+// void vgmstream_file_info_box(const gchar *pFile) //optional
+// {
+//   char msg[1024] = {0};
+//   VGMSTREAM *stream;
 
-    audacious_info_dialog("File information",msg,"OK",FALSE,NULL,NULL);
-  }
-}
+//   if ((stream = init_vgmstream_from_STREAMFILE(open_vfs(pFile))))
+//   {
+//     describe_vgmstream(stream,msg,sizeof(msg));
 
+//     close_vgmstream(stream);
+
+//     audacious_info_dialog("File information",msg,"OK",FALSE,NULL,NULL);
+//   }
+// }
+
+/* compiler-errors
+
+
+main.c:51:1: warning: data definition has no type or storage class [enabled by default]
+main.c:51:1: warning: type defaults to 'int' in declaration of 'SIMPLE_INPUT_PLUGIN' [-Wimplicit-int]
+main.c:51:1: warning: parameter names (without types) in function declaration [enabled by default]
+main.c: In function 'vgmstream_play_loop':
+main.c:152:16: error: 'const struct _InputPlayback' has no member named 'pass_audio'
+main.c: In function 'vgmstream_play':
+main.c:240:48: error: 'const struct _InputPlayback' has no member named 'filename'
+main.c:241:1: warning: implicit declaration of function 'tuple_associate_int' [-Wimplicit-function-declaration]
+main.c: In function 'vgmstream_probe_for_tuple':
+main.c:342:9: warning: implicit declaration of function 'tuple_free' [-Wimplicit-function-declaration]
+main.c: At top level:
+main.c:35:21: warning: 'vgmstream_iplist' defined but not used [-Wunused-variable]
+
+
+*/
+
+/*
+done:
+  vgmstream_play
+
+
+TODO:
+  implement settings 
+
+
+
+
+
+Searches:
+-search for format FMT_S16_LE  //function pass_audio
+*/
