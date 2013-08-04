@@ -49,11 +49,11 @@ static size_t read_vfs(VFSSTREAMFILE *streamfile,uint8_t *dest,off_t offset,size
   /* if the offsets don't match, then we need to perform a seek */
   if (streamfile->offset != offset) 
   {
-    aud_vfs_fseek(streamfile->vfsFile,offset,SEEK_SET);
+    vfs_fseek(streamfile->vfsFile,offset,SEEK_SET);
     streamfile->offset = offset;
   }
   
-  sz = aud_vfs_fread(dest,1,length,streamfile->vfsFile);
+  sz = vfs_fread(dest,1,length,streamfile->vfsFile);
   /* increment our current offset */
   if (sz >= 0)
     streamfile->offset += sz;
@@ -63,13 +63,13 @@ static size_t read_vfs(VFSSTREAMFILE *streamfile,uint8_t *dest,off_t offset,size
 
 static void close_vfs(VFSSTREAMFILE *streamfile)
 {
-  aud_vfs_fclose(streamfile->vfsFile);
+  vfs_fclose(streamfile->vfsFile);
   free(streamfile);
 }
 
 static size_t get_size_vfs(VFSSTREAMFILE *streamfile)
 {
-  return aud_vfs_fsize(streamfile->vfsFile);
+  return vfs_fsize(streamfile->vfsFile);
 }
 
 static size_t get_offset_vfs(VFSSTREAMFILE *streamfile)
@@ -94,26 +94,26 @@ static STREAMFILE *open_vfs_by_VFSFILE(VFSFile *file,const char *path);
 
 static STREAMFILE *open_vfs_impl(VFSSTREAMFILE *streamfile,const char * const filename,size_t buffersize) 
 {
-#ifdef SUPPORT_DUP
-  VFSFile *newfile;
-  STREAMFILE *newstreamFile;
-#endif
+// #ifdef SUPPORT_DUP
+//   VFSFile *newfile;
+//   STREAMFILE *newstreamFile;
+// #endif
   if (!filename)
     return NULL;
   // if same name, duplicate the file pointer we already have open
-#ifdef SUPPORT_DUP
-  if (!strcmp(streamfile->name,filename)) {
-    if ((newfile = aud_vfs_dup(streamfile->vfsFile)))
-    {
-      newstreamFile = open_vfs_by_VFSFILE(newfile,filename);
-      if (newstreamFile) { 
-	return newstreamFile;
-      }
-      // failure, close it and try the default path (which will probably fail a second time)
-      aud_vfs_fclose(newfile);
-    }
-  }
-#endif
+// #ifdef SUPPORT_DUP
+//   if (!strcmp(streamfile->name,filename)) {
+//     if ((newfile = aud_vfs_dup(streamfile->vfsFile)))
+//     {
+//       newstreamFile = open_vfs_by_VFSFILE(newfile,filename);
+//       if (newstreamFile) { 
+// 	     return newstreamFile;
+//       }
+//       // failure, close it and try the default path (which will probably fail a second time)
+//       vfs_fclose(newfile);
+//     }
+//   }
+// #endif
   return open_vfs(filename);
 }
 

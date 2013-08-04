@@ -150,7 +150,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
 
           // pass it on
       	// playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , playing );
-
+        playback->output->write_audio(buffer, sizeof(buffer));
       	decode_pos_samples += samples_to_do;
       }
     }
