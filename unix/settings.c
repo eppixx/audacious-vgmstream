@@ -3,11 +3,6 @@
 
 #define CUBE_CONFIG_TAG "vgmstream"
 
-// temp till real settings
-#define LOOPCOUNT 1
-#define FADESECONDS 5
-#define FADEDELAYSECOND 0
-#define LOOPFOREVER 0
 
 void debugMessage(char *str)
 {

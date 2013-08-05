@@ -9,6 +9,7 @@ void debugMessage(char *str);
 #define LOOPCOUNT 1
 #define FADESECONDS 0
 #define FADEDELAYSECONDS 0
+#define LOOPFOREVER 0
 
 typedef struct _SETTINGS
 {
