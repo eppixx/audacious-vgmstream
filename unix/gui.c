@@ -20,7 +20,7 @@
 #include "../src/vgmstream.h"
 #include "gui.h"
 #include "vfs.h"
-// #include "settings.h"
+#include "settings.h"
 
 // extern SETTINGS settings;
 static GtkWidget *about_box;
@@ -104,17 +104,17 @@ static void OnOK()
 {
   // SETTINGS s;
   // update my variables
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(loopcount_win)),1))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(loopcount_win)),LOOPCOUNT))
   {
     DisplayError("Invalid loop times entry.");
     return;
   }
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadeseconds_win)),0))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadeseconds_win)),FADESECONDS))
   {
     DisplayError("Invalid fade delay entry.");
     return;
   }
-  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadedelayseconds_win)),0))
+  if (!ToInt(gtk_entry_get_text(GTK_ENTRY(fadedelayseconds_win)),FADEDELAYSECONDS))
   {
     DisplayError("Invalid fade length entry.");
     return;
@@ -184,7 +184,7 @@ void vgmstream_gui_configure()
   loopcount_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(loopcount_win),TRUE);
   // sprintf(buf,"%i",settings.loopcount);
-  sprintf(buf,"%i",1);
+  sprintf(buf,"%i",LOOPCOUNT);
   gtk_entry_set_text(GTK_ENTRY(loopcount_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),loopcount_win,FALSE,FALSE,0);
 
@@ -197,7 +197,7 @@ void vgmstream_gui_configure()
   fadeseconds_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(fadeseconds_win),TRUE);
   // sprintf(buf,"%i",settings.fadeseconds);
-  sprintf(buf,"%i",0);
+  sprintf(buf,"%i",FADESECONDS);
   gtk_entry_set_text(GTK_ENTRY(fadeseconds_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),fadeseconds_win,FALSE,FALSE,0);
 
@@ -210,7 +210,7 @@ void vgmstream_gui_configure()
   fadedelayseconds_win = gtk_entry_new_with_max_length(3);
   gtk_editable_set_editable(GTK_EDITABLE(fadedelayseconds_win),TRUE);
   // sprintf(buf,"%i",settings.fadedelayseconds);
-  sprintf(buf,"%i",0);
+  sprintf(buf,"%i",FADEDELAYSECONDS);
   gtk_entry_set_text(GTK_ENTRY(fadedelayseconds_win),buf);
   gtk_box_pack_start(GTK_BOX(hbox),fadedelayseconds_win,FALSE,FALSE,0);
 

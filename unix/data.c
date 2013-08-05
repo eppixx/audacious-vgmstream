@@ -11,7 +11,7 @@
 #include "../src/vgmstream.h"
 #include "gui.h"
 #include "vfs.h"
-// #include "settings.h"
+#include "settings.h"
 
 
 void vgmstream_init();
@@ -23,7 +23,7 @@ void vgmstream_stop(InputPlayback *context);
 void vgmstream_pause(InputPlayback *context,gshort paused);
 void vgmstream_seek(InputPlayback *context,gint time);
 int vgmstream_get_time(InputPlayback *context);
-void vgmstream_mseek(InputPlayback *context,gulong ms);
+void vgmstream_mseek(InputPlayback *context, int ms);
 void vgmstream_file_info_box(const gchar *pFile);
 Tuple * vgmstream_probe_for_tuple(const gchar *uri, VFSFile *fd);
 
@@ -319,9 +319,9 @@ AUD_INPUT_PLUGIN
   .play = vgmstream_play,
   .stop = vgmstream_stop,
   .pause = vgmstream_pause,
-  // .seek = vgmstream_seek,
   .extensions = vgmstream_exts,
   .mseek = vgmstream_mseek,
+  // .seek = vgmstream_seek,
   // .file_info_box = vgmstream_file_info_box, //optional
 )
 
