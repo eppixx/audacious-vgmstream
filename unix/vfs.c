@@ -63,6 +63,7 @@ static size_t read_vfs(VFSSTREAMFILE *streamfile,uint8_t *dest,off_t offset,size
 
 static void close_vfs(VFSSTREAMFILE *streamfile)
 {
+  debugMessage("close_vfs");
   vfs_fclose(streamfile->vfsFile);
   free(streamfile);
 }

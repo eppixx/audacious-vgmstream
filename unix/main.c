@@ -19,7 +19,7 @@
 
 VGMSTREAM *vgmstream = NULL;
 volatile long decode_seek;
-gint stream_length_samples;
+gint stream_samples_amount;
 
 //threads
 GCond *ctrl_cond = NULL;
@@ -31,14 +31,6 @@ bool_t eof;
 bool_t end_thread;
 
 
-
-void CLOSE_STREAM()
-{
-  if (vgmstream)
-    close_vgmstream(vgmstream);
-  vgmstream = NULL;
-}
-
 void* vgmstream_play_loop(InputPlayback *playback)
 {
   debugMessage("start loop");
@@ -48,25 +40,27 @@ void* vgmstream_play_loop(InputPlayback *playback)
   long l;
   gint seek_needed_samples;
   gint samples_to_do;
-  gint decode_pos_samples = 0;
-  gint fade_length_samples;
+  gint current_sample_pos = 0;
+  gint fade_sample_length;
 
   //define other variables
   decode_seek = -1;
   playing = TRUE;
   eof = FALSE;
   end_thread = FALSE;
-
+        
+  int max_buffer_samples = sizeof(buffer)/sizeof(buffer[0])/vgmstream->channels;
   if (vgmstream->loop_flag)
-    fade_length_samples = FADESECONDS * vgmstream->sample_rate;
+    fade_sample_length = FADESECONDS * vgmstream->sample_rate;
   else
-    fade_length_samples = -1;
+    fade_sample_length = -1;
 
   while (playing)
   {
-    // ******************************************
-    // Seeking
-    // ******************************************
+      /******************************************
+                        Seeking
+       ******************************************/
+
     // check thread flags, not my favorite method
     if (end_thread)
     {
@@ -74,53 +68,58 @@ void* vgmstream_play_loop(InputPlayback *playback)
     }
     else if (decode_seek >= 0)
     {
-      /* compute from ms to samples */
+      // compute from ms to samples
       seek_needed_samples = (long long)decode_seek * vgmstream->sample_rate / 1000L;
-      if (seek_needed_samples < decode_pos_samples)
+      if (seek_needed_samples < current_sample_pos)
       {
-        /* go back in time, reopen file */
+        // go back in time, reopen file
         debugMessage("reopen file to seek backward");
         reset_vgmstream(vgmstream);
-        decode_pos_samples = 0;
+        current_sample_pos = 0;
         samples_to_do = seek_needed_samples;
       }
-      else if (decode_pos_samples < seek_needed_samples)
+      else if (current_sample_pos < seek_needed_samples)
       {
-        /* go forward in time */
-        samples_to_do = seek_needed_samples - decode_pos_samples;
+        // go forward in time
+        samples_to_do = seek_needed_samples - current_sample_pos;
       }
       else
       {
-        /* seek to where we are, how convenient */
+        // seek to where we are, how convenient
         samples_to_do = -1;
       }
-      /* do the actual seeking */
+      // do the actual seeking
       if (samples_to_do >= 0)
       {
         debugMessage("render forward");
-        while (samples_to_do > 0)
+
+        //render till seeked sample
+        while (samples_to_do >0)
         {
-          printf("%i\n", samples_to_do);
-          l = min(576,samples_to_do);
-          render_vgmstream(buffer,l,vgmstream);
-          samples_to_do -= l;
-          decode_pos_samples += l;
+          int seek_samples = max_buffer_samples;
+          current_sample_pos += seek_samples;
+          samples_to_do -= seek_samples;
+          render_vgmstream(buffer, seek_samples, vgmstream);
         }
+
+        debugMessage("after render vgmstream");
+        
         playback->output->flush(decode_seek);
-        // reset eof flag
+
+        //reset variables
+        samples_to_do = -1;
         eof = FALSE;
       }
-      // reset decode_seek
       decode_seek = -1;
     }
 
-    // ******************************************
-    // Playback
-    // ******************************************
+      /******************************************
+                        Playback
+       ******************************************/
     if (!eof)
     {
       // read data and pass onward
-      samples_to_do = min(576,stream_length_samples - (decode_pos_samples + 576));
+      samples_to_do = min(576,stream_samples_amount - (current_sample_pos + 576));
       l = (samples_to_do * vgmstream->channels*2);
       if (!l)
       {
@@ -134,15 +133,15 @@ void* vgmstream_play_loop(InputPlayback *playback)
         render_vgmstream(buffer,samples_to_do,vgmstream);
 
         // fade!
-        if (vgmstream->loop_flag && fade_length_samples > 0 && !LOOPFOREVER) 
+        if (vgmstream->loop_flag && fade_sample_length > 0 && !LOOPFOREVER) 
         {
             debugMessage("start fading");
-            int samples_into_fade = decode_pos_samples - (stream_length_samples - fade_length_samples);
+            int samples_into_fade = current_sample_pos - (stream_samples_amount - fade_sample_length);
             if (samples_into_fade + samples_to_do > 0) {
                 int j,k;
                 for (j=0;j<samples_to_do;j++,samples_into_fade++) {
                     if (samples_into_fade > 0) {
-                        double fadedness = (double)(fade_length_samples-samples_into_fade)/fade_length_samples;
+                        double fadedness = (double)(fade_sample_length-samples_into_fade)/fade_sample_length;
                         for (k=0;k<vgmstream->channels;k++) {
                             buffer[j*vgmstream->channels+k] =
                                 (short)(buffer[j*vgmstream->channels+k]*fadedness);
@@ -155,7 +154,7 @@ void* vgmstream_play_loop(InputPlayback *playback)
           // pass it on
         // playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , playing );
         playback->output->write_audio(buffer, sizeof(buffer));
-        decode_pos_samples += samples_to_do;
+        current_sample_pos += samples_to_do;
       }
     }
     else
@@ -165,17 +164,18 @@ void* vgmstream_play_loop(InputPlayback *playback)
       while (playback->output->buffer_playing())
         g_usleep(10000);
 
-      debugMessage("track ending");
-      playback->output->close_audio();
       playing = FALSE;
       // this effectively ends the loop
     }
   }
+  debugMessage("track ending");
+  playback->output->close_audio();
+
  exit_thread:
   decode_seek = -1;
   playing = FALSE;
-  decode_pos_samples = 0;
-  CLOSE_STREAM();
+  current_sample_pos = 0;
+  close_stream();
 
   return 0;
 }
@@ -189,21 +189,21 @@ void vgmstream_play(InputPlayback *context, const char *filename,
   if (!vgmstream || vgmstream->channels <= 0)  
   {
     printf("Channels are zero or couldn't init plugin\n");
-    CLOSE_STREAM();
+    close_stream();
     goto end_thread;
   }
 
   if (!context->output->open_audio(FMT_S16_LE, vgmstream->sample_rate, vgmstream->channels))
   {
     printf("couldn't open audio device\n");
-    CLOSE_STREAM();
+    close_stream();
     goto end_thread;
   }
 
-  stream_length_samples = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream);
+  stream_samples_amount = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream);
 
-  gint ms = (stream_length_samples * 1000LL) / vgmstream->sample_rate;
-  gint rate   = vgmstream->sample_rate * 2 * vgmstream->channels;
+  gint ms = (stream_samples_amount * 1000LL) / vgmstream->sample_rate;
+  gint rate = vgmstream->sample_rate * 2 * vgmstream->channels;
 
   //set Tuple for track info
   Tuple * tuple = tuple_new_from_filename(filename);
@@ -249,6 +249,13 @@ void vgmstream_destroy()
   ctrl_mutex = NULL;
 }
 
+void close_stream()
+{
+  if (vgmstream)
+    close_vgmstream(vgmstream);
+  vgmstream = NULL;
+}
+
 void vgmstream_stop(InputPlayback *context)
 {
   debugMessage("stop");
@@ -264,7 +271,7 @@ void vgmstream_stop(InputPlayback *context)
   // close audio output
   context->output->close_audio();
   // cleanup
-  CLOSE_STREAM();
+  close_stream();
 }
 
 void vgmstream_pause(InputPlayback *context,gshort paused)
@@ -281,6 +288,7 @@ void vgmstream_mseek(InputPlayback *data, int ms)
     decode_seek = ms;
     eof = FALSE;
 
+    //stall while vgmstream_loop seeks
     while (decode_seek != -1)
       g_usleep(10000);
   }
@@ -293,19 +301,18 @@ Tuple * vgmstream_probe_for_tuple(const gchar * filename, VFSFile * file)
   long length;
 
   if (!vgmstream)
-    goto fail;
+  {
+    if (tuple) {
+        tuple_unref(tuple);
+    }
+    return NULL; 
+  }
 
   tuple = tuple_new_from_filename(filename);
 
   length = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream) * 1000LL / vgmstream->sample_rate;
   tuple_set_int(tuple, FIELD_LENGTH, NULL, length);
   return tuple;
-
-fail:
-    if (tuple) {
-        tuple_unref(tuple);
-    }
-    return NULL;
 }
 
 // void vgmstream_file_info_box(const gchar *pFile) //optional
