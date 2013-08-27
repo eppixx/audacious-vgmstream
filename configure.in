@@ -15,7 +15,7 @@ AM_PROG_LIBTOOL
 AC_PATH_X
 AC_PATH_XTRA
 
-PKG_CHECK_MODULES(AUDACIOUS, [audacious >= 1.4.0],,
+PKG_CHECK_MODULES(AUDACIOUS, [audacious >= 3.0.0],,
         [AC_MSG_ERROR([Cannot find Audacious, have you installed audacious yet?])]
 )
 
