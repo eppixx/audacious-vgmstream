@@ -26,9 +26,9 @@ GCond *ctrl_cond = NULL;
 GMutex *ctrl_mutex = NULL;
 
 //***testing***
-bool_t playing;
-bool_t eof;
-bool_t end_thread;
+gboolean playing;
+gboolean eof;
+gboolean end_thread;
 
 
 void* vgmstream_play_loop(InputPlayback *playback)
@@ -234,7 +234,7 @@ void vgmstream_configure()
 void vgmstream_init()
 {
   debugMessage("init threads");
-  // LoadSettings(&settings);
+  vgmstream_cfg_load();
   ctrl_cond = g_cond_new();
   ctrl_mutex = g_mutex_new();
   debugMessage("after init threads");

@@ -133,6 +133,7 @@ static void OnOK()
 
 void vgmstream_gui_about()
 {
+  debugMessage("called gui_about");
   if (about_box)
   {
     gdk_window_raise(about_box->window);

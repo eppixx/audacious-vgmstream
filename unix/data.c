@@ -15,17 +15,17 @@
 
 
 void vgmstream_init();
-// void vgmstream_about();
-void vgmstream_configure();
+void vgmstream_gui_about();
+void vgmstream_cfg_ui();
 void vgmstream_destroy();
-void vgmstream_play(InputPlayback *context);
-void vgmstream_stop(InputPlayback *context);
-void vgmstream_pause(InputPlayback *context,gshort paused);
-void vgmstream_seek(InputPlayback *context,gint time);
-int vgmstream_get_time(InputPlayback *context);
-void vgmstream_mseek(InputPlayback *context, int ms);
-void vgmstream_file_info_box(const gchar *pFile);
+
 Tuple * vgmstream_probe_for_tuple(const gchar *uri, VFSFile *fd);
+void vgmstream_file_info_box(const gchar *pFile);
+void vgmstream_play(InputPlayback *context);
+void vgmstream_pause(InputPlayback *context,gshort paused);
+void vgmstream_mseek(InputPlayback *context, int ms);
+void vgmstream_stop(InputPlayback *context);
+
 
 static const char vgmstream_about[] =
 {
@@ -310,19 +310,22 @@ static const gchar *vgmstream_exts [] =
 
 AUD_INPUT_PLUGIN
 (
+  //Common Fields
   .name = "VGMStream Decoder",
   .init = vgmstream_init,
-  // .about_text = vgmstream_about, 
-  .configure = vgmstream_configure,     //maybe prefs in the future
+  // .about_text = vgmstream_about,     //works in version 3.3 and later
+  // .about = vgmstream_gui_about,      //not yet implemented
+  .configure = vgmstream_cfg_ui,  //maybe prefs in the future
   .cleanup = vgmstream_destroy,
-  .probe_for_tuple = vgmstream_probe_for_tuple,
-  .play = vgmstream_play,
-  .stop = vgmstream_stop,
-  .pause = vgmstream_pause,
+  
+  //InputPlugin Fields
   .extensions = vgmstream_exts,
-  .mseek = vgmstream_mseek,
-  // .seek = vgmstream_seek,
+  .probe_for_tuple = vgmstream_probe_for_tuple,
   // .file_info_box = vgmstream_file_info_box, //optional
+  .play = vgmstream_play,
+  .pause = vgmstream_pause,
+  .mseek = vgmstream_mseek,
+  .stop = vgmstream_stop,
 )
 
 
