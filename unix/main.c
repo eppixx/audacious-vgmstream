@@ -6,9 +6,8 @@
 #include <audacious/plugin.h>
 #include <audacious/i18n.h>
 
-#include "version.h"
 #include "../src/vgmstream.h"
-#include "gui.h"
+#include "version.h"
 #include "vfs.h"
 #include "settings.h"
 

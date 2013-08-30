@@ -1,17 +1,3 @@
-// #include <audacious/util.h>
-// #include <audacious/configdb.h>
-// #include <audacious/plugin.h>
-// #include <audacious/output.h>
-// #include <audacious/i18n.h>
-// #include <glib.h>
-
-// #include <unistd.h>
-// #include <pthread.h>
-// #include <stdlib.h>
-// #include "version.h"
-// #include "../src/vgmstream.h"
-// #include "vfs.h"
-
 #include <glib.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -20,9 +6,8 @@
 #include <audacious/plugin.h>
 #include <audacious/i18n.h>
 
-#include "version.h"
 #include "../src/vgmstream.h"
-#include "gui.h"
+#include "version.h"
 #include "vfs.h"
 #include "settings.h"
 
