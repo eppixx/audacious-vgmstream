@@ -1,17 +1,29 @@
-#include "settings.h"
-
 #include <gtk/gtk.h>
+
 #include <audacious/plugin.h>
 #include <audacious/misc.h>
+
+#include "settings.h"
+#include "version.h"
 
 #define CFG_ID "vgmstream"
 
 Settings vgmstream_cfg;
-GtkWidget *window; // Configure Window
-GtkWidget *loop_count;    // Spinbutton
-GtkWidget *fade_length;   // SpinButton
-GtkWidget *fade_delay;    // SpinButton
-GtkWidget *loop_forever;  // CheckBox
+
+static GtkWidget *window;        // Configure Window
+static GtkWidget *loop_count;    // Spinbutton
+static GtkWidget *fade_length;   // SpinButton
+static GtkWidget *fade_delay;    // SpinButton
+static GtkWidget *loop_forever;  // CheckBox
+
+static GtkWidget *window_about;  // About Window
+
+const char vgmstream_about[] =
+{
+  "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
+  "audacious-vgmstream written by Todd Jeffreys (http://voidpointer.org/) and modified by Thomas Eppers\n"
+  "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
+};
 
 static const gchar* const defaults[] = 
 {
@@ -22,8 +34,8 @@ static const gchar* const defaults[] =
   NULL 
 };
 
-void on_OK();
-void on_cancel();
+static void on_OK();
+static void on_cancel();
 
 void vgmstream_cfg_load()
 {
@@ -122,7 +134,7 @@ void vgmstream_cfg_ui()
   gtk_widget_show_all (window);
 }
 
-void on_OK()
+static void on_OK()
 {
   debugMessage("clicked OK on configure");
   vgmstream_cfg.loop_count = gtk_spin_button_get_value_as_int(loop_count);
@@ -133,10 +145,19 @@ void on_OK()
   window = NULL;
 }
 
-void on_cancel()
+static void on_cancel()
 {
   debugMessage("clicked Cancel on configure");
   window = NULL;
+}
+
+void vgmstream_cfg_about()
+{
+  debugMessage("called cfg_about");
+
+  static GtkWidget * about_box;
+  audgui_simple_message (& about_box, GTK_MESSAGE_INFO,
+    "About the VGMStream Decoder", vgmstream_about);
 }
 
 void debugMessage(char *str)

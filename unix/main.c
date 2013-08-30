@@ -201,7 +201,7 @@ void vgmstream_play(InputPlayback *context, const char *filename,
   }
 
   stream_samples_amount = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream);
-
+  printf("%i\n", stream_samples_amount);
   gint ms = (stream_samples_amount * 1000LL) / vgmstream->sample_rate;
   gint rate = vgmstream->sample_rate * 2 * vgmstream->channels;
 
@@ -294,24 +294,26 @@ void vgmstream_mseek(InputPlayback *data, int ms)
   }
 }
 
-Tuple * vgmstream_probe_for_tuple(const gchar * filename, VFSFile * file)
+Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
 {
   debugMessage("probe for tuple");
-  Tuple * tuple = NULL;
-  long length;
+  Tuple *tuple = NULL;
+  long ms;
 
   if (!vgmstream)
   {
-    if (tuple) {
-        tuple_unref(tuple);
-    }
-    return NULL; 
+    vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(filename));
+    // if (tuple) {
+    //     tuple_unref(tuple);
+    // }
+    // return NULL; 
   }
 
   tuple = tuple_new_from_filename(filename);
 
-  length = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream) * 1000LL / vgmstream->sample_rate;
-  tuple_set_int(tuple, FIELD_LENGTH, NULL, length);
+  ms = get_vgmstream_play_samples(LOOPCOUNT,FADESECONDS,FADEDELAYSECONDS,vgmstream) * 1000LL / vgmstream->sample_rate;
+  tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
+  printf("%i\n", ms);
   return tuple;
 }
 

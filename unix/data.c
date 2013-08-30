@@ -26,14 +26,6 @@ void vgmstream_pause(InputPlayback *context,gshort paused);
 void vgmstream_mseek(InputPlayback *context, int ms);
 void vgmstream_stop(InputPlayback *context);
 
-
-static const char vgmstream_about[] =
-{
-  "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
-    "audacious-vgmstream written by Todd Jeffreys (http://voidpointer.org/) and modified by Thomas Eppers\n"
-    "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
-};
-
 static const gchar *vgmstream_exts [] = 
 {
   "2dx9",
@@ -313,9 +305,9 @@ AUD_INPUT_PLUGIN
   //Common Fields
   .name = "VGMStream Decoder",
   .init = vgmstream_init,
-  // .about_text = vgmstream_about,     //works in version 3.3 and later
-  // .about = vgmstream_gui_about,      //not yet implemented
-  .configure = vgmstream_cfg_ui,  //maybe prefs in the future
+  // .about_text = vgmstream_about,    //works in version 3.3 and later
+  .about = vgmstream_cfg_about,
+  .configure = vgmstream_cfg_ui,
   .cleanup = vgmstream_destroy,
   
   //InputPlugin Fields

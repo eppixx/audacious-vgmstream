@@ -8,7 +8,7 @@
 void debugMessage(char *str);
 
 // temp till real settings
-#define LOOPCOUNT 1
+#define LOOPCOUNT 2
 #define FADESECONDS 0
 #define FADEDELAYSECONDS 0
 #define LOOPFOREVER 0
@@ -29,21 +29,11 @@ typedef struct
 
 extern Settings vgmstream_cfg;
 
+extern const char vgmstream_about[];
+
 void vgmstream_cfg_load();
 void vgmstream_cfg_save();
 void vgmstream_cfg_ui();
-
-// typedef struct _SETTINGS
-// {
-//   int loopcount;
-//   int fadeseconds;
-//   int fadedelayseconds;
-// } SETTINGS,*PSETTINGS,*LPSETTINGS;
-
-// void DefaultSettings(LPSETTINGS pSettings);
-// int LoadSettings(LPSETTINGS pSettings);
-// int SaveSettings(LPSETTINGS pSettings);
-
-
+void vgmstream_cfg_about();
 
 #endif
