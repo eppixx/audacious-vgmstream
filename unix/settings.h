@@ -7,12 +7,6 @@
 #define DEBUG TRUE
 void debugMessage(char *str);
 
-// temp till real settings
-#define LOOPCOUNT 2
-#define FADESECONDS 0
-#define FADEDELAYSECONDS 0
-#define LOOPFOREVER 0
-
 //default-values
 #define DEFAULT_FADE_SECONDS 0
 #define DEFAULT_FADE_DELAY_SECONDS 0
@@ -28,7 +22,6 @@ typedef struct
 } Settings;
 
 extern Settings vgmstream_cfg;
-
 extern const char vgmstream_about[];
 
 void vgmstream_cfg_load();

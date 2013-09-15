@@ -21,7 +21,7 @@ static GtkWidget *window_about;  // About Window
 const char vgmstream_about[] =
 {
   "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
-  "audacious-vgmstream written by Todd Jeffreys (http://voidpointer.org/) and modified by Thomas Eppers\n"
+  "audacious-vgmstream originally written by Todd Jeffreys (http://voidpointer.org/)\nported to aduacious 3 by Thomas Eppers\n"
   "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
 };
 
@@ -79,8 +79,8 @@ void vgmstream_cfg_ui()
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG );
-  gtk_window_set_title(GTK_WINDOW(window), (gchar *)"VGMStream Decoder - Configuration");
-  gtk_container_set_border_width(GTK_CONTAINER(window), 50);
+  gtk_window_set_title(GTK_WINDOW(window), (gchar *)"VGMStream Decoder - Config");
+  gtk_container_set_border_width(GTK_CONTAINER(window), 25);
 
   vbox = gtk_vbox_new (FALSE, 5);
 

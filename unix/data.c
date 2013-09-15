@@ -311,7 +311,6 @@ AUD_INPUT_PLUGIN
   //InputPlugin Fields
   .extensions = vgmstream_exts,
   .probe_for_tuple = vgmstream_probe_for_tuple,
-  // .file_info_box = vgmstream_file_info_box, //optional
   .play = vgmstream_play,
   .pause = vgmstream_pause,
   .mseek = vgmstream_mseek,
