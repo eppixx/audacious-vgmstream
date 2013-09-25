@@ -34,27 +34,32 @@ static const gchar* const defaults[] =
   NULL 
 };
 
-static void on_OK();
+static void on_loop_forever_changed();
 static void on_cancel();
+static void on_OK();
 
+//uses the store-mechanism from audacious
+//because audacious can't save float we store them in integer and
+//multiply with 0.1 to get the desired float
 void vgmstream_cfg_load()
 {
   debugMessage("cfg_load called");
   aud_config_set_defaults(CFG_ID, defaults);
 
-  vgmstream_cfg.fade_length = aud_get_int(CFG_ID, "fade_length");
-  vgmstream_cfg.fade_delay = aud_get_int(CFG_ID, "fade_delay");
-  vgmstream_cfg.loop_count = aud_get_int(CFG_ID, "loop_count");
   vgmstream_cfg.loop_forever = aud_get_bool(CFG_ID, "loop_forever");
+  vgmstream_cfg.loop_count = aud_get_int(CFG_ID, "loop_count");
+  vgmstream_cfg.fade_length = aud_get_int(CFG_ID, "fade_length") * 0.1;
+  vgmstream_cfg.fade_delay = aud_get_int(CFG_ID, "fade_delay") * 0.1;
 }
 
+//we multiply with 10 to be able to store integer
 void vgmstream_cfg_safe()
 {
   debugMessage("cfg_save called");
-  aud_set_int(CFG_ID, "fade_length", vgmstream_cfg.fade_length);
-  aud_set_int(CFG_ID, "fade_delay", vgmstream_cfg.fade_delay);
-  aud_set_int(CFG_ID, "loop_count", vgmstream_cfg.loop_count);
   aud_set_bool(CFG_ID, "loop_forever", vgmstream_cfg.loop_forever);
+  aud_set_int(CFG_ID, "loop_count", vgmstream_cfg.loop_count);
+  aud_set_int(CFG_ID, "fade_length", (gint)vgmstream_cfg.fade_length * 10);
+  aud_set_int(CFG_ID, "fade_delay", (gint)vgmstream_cfg.fade_delay * 10);
 }
 
 void vgmstream_cfg_ui()
@@ -84,6 +89,12 @@ void vgmstream_cfg_ui()
 
   vbox = gtk_vbox_new (FALSE, 5);
 
+  // loop forever
+  loop_forever = gtk_check_button_new_with_label("Loop Forever");
+  g_signal_connect (loop_forever, "toggled", G_CALLBACK (on_loop_forever_changed), NULL);
+  gtk_toggle_button_set_active(loop_forever, vgmstream_cfg.loop_forever);
+  gtk_container_add(GTK_CONTAINER (vbox), loop_forever);
+
   // loop count
   label = gtk_label_new("Loop count");
   adjustment = gtk_adjustment_new(vgmstream_cfg.loop_count, 1, 10, 1, 0, 0);
@@ -95,7 +106,7 @@ void vgmstream_cfg_ui()
 
   // fade length
   label = gtk_label_new("Fade length");
-  adjustment = gtk_adjustment_new(vgmstream_cfg.fade_length/10, 0, 10, 0.2, 0, 0);
+  adjustment = gtk_adjustment_new(vgmstream_cfg.fade_length, 0, 10, 0.2, 0, 0);
   fade_length = gtk_spin_button_new(adjustment, 0.2, 1);
   hbox = gtk_hbox_new(FALSE, 5);
   gtk_container_add(GTK_CONTAINER (hbox), label);
@@ -104,17 +115,12 @@ void vgmstream_cfg_ui()
 
   // fade delay
   label = gtk_label_new("Fade delay");
-  adjustment = gtk_adjustment_new(vgmstream_cfg.fade_delay/10, 0, 10, 0.2, 0, 0);
+  adjustment = gtk_adjustment_new(vgmstream_cfg.fade_delay, 0, 10, 0.2, 0, 0);
   fade_delay = gtk_spin_button_new(adjustment, 0.2, 1);
   hbox = gtk_hbox_new(FALSE,5);
   gtk_container_add(GTK_CONTAINER (hbox), label);
   gtk_container_add(GTK_CONTAINER (hbox), fade_delay);
   gtk_container_add(GTK_CONTAINER (vbox), hbox);
-
-  // loop forever
-  loop_forever = gtk_check_button_new_with_label("Loop Forever");
-  gtk_toggle_button_set_active(loop_forever, vgmstream_cfg.loop_forever);
-  gtk_container_add(GTK_CONTAINER (vbox), loop_forever);
 
   bbox = gtk_hbox_new(TRUE, 5);
   // cancel button
@@ -131,23 +137,52 @@ void vgmstream_cfg_ui()
   gtk_container_add(GTK_CONTAINER (vbox), bbox);
 
   gtk_container_add(GTK_CONTAINER (window), vbox);
+
+  if (vgmstream_cfg.loop_forever)
+  {
+    gtk_widget_set_sensitive(loop_count, FALSE);
+    gtk_widget_set_sensitive(fade_length, FALSE);
+    gtk_widget_set_sensitive(fade_delay, FALSE);
+  }
+
   gtk_widget_show_all (window);
 }
 
-static void on_OK()
+//when the loop_forever checkbox is activated it isn't possible
+//to change the other values
+static void on_loop_forever_changed()
 {
-  debugMessage("clicked OK on configure");
-  vgmstream_cfg.loop_count = gtk_spin_button_get_value_as_int(loop_count);
-  vgmstream_cfg.fade_delay = gtk_spin_button_get_value(fade_delay)*10;
-  vgmstream_cfg.fade_length = gtk_spin_button_get_value(fade_length)*10;
-  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(loop_forever);
-  vgmstream_cfg_safe();
-  window = NULL;
+  debugMessage("on loop forever changed");
+  if (gtk_toggle_button_get_active(loop_forever))
+  {
+    debugMessage("unsensitive");
+    gtk_widget_set_sensitive(loop_count, FALSE);
+    gtk_widget_set_sensitive(fade_length, FALSE);
+    gtk_widget_set_sensitive(fade_delay, FALSE);
+  }
+  else
+  {
+    debugMessage("sensitive");
+    gtk_widget_set_sensitive(loop_count, TRUE);
+    gtk_widget_set_sensitive(fade_length, TRUE);
+    gtk_widget_set_sensitive(fade_delay, TRUE);
+  }
 }
 
 static void on_cancel()
 {
   debugMessage("clicked Cancel on configure");
+  window = NULL;
+}
+
+static void on_OK()
+{
+  debugMessage("clicked OK on configure");
+  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(loop_forever);
+  vgmstream_cfg.loop_count = gtk_spin_button_get_value_as_int(loop_count);
+  vgmstream_cfg.fade_length = gtk_spin_button_get_value(fade_length);
+  vgmstream_cfg.fade_delay = gtk_spin_button_get_value(fade_delay);
+  vgmstream_cfg_safe();
   window = NULL;
 }
 

@@ -26,11 +26,13 @@ static void close_stream();
 GCond *ctrl_cond = NULL;
 GMutex *ctrl_mutex = NULL;
 
+//flags
 gboolean playing;
 gboolean eof;
 gboolean end_thread;
 
 //this method represents the core loop and runs in it's own thread
+//it is manipulatable through flags
 static void* vgmstream_play_loop(InputPlayback *playback)
 {
   debugMessage("start loop");
@@ -88,6 +90,7 @@ static void* vgmstream_play_loop(InputPlayback *playback)
         // seek to where we are, how convenient
         samples_to_do = -1;
       }
+
       // do the actual seeking
       if (samples_to_do >= 0)
       {
@@ -99,13 +102,11 @@ static void* vgmstream_play_loop(InputPlayback *playback)
           gint seek_samples = max_buffer_samples;
           current_sample_pos += seek_samples;
           samples_to_do -= seek_samples;
-          // printf("%d\n", samples_to_do);
           render_vgmstream(buffer, seek_samples, vgmstream);
         }
-
-        debugMessage("after render vgmstream");
-        
+        //flush buffered data and set time counter to decode_seek
         playback->output->flush(decode_seek);
+        debugMessage("after render vgmstream");
 
         //reset variables
         samples_to_do = -1;
@@ -125,48 +126,50 @@ static void* vgmstream_play_loop(InputPlayback *playback)
       if (!l)
       {
         debugMessage("set eof flag");
+        //flag will be triggered on next run through loop
         eof = TRUE;
-        // will trigger on next run through
       }
       else
       {
-        // ok we read stuff
+        // render audio data and write to buffer
         render_vgmstream(buffer,samples_to_do,vgmstream);
 
         // fade!
         if (vgmstream->loop_flag && fade_sample_length > 0 && !vgmstream_cfg.loop_forever) 
         {
-            debugMessage("start fading");
             gint samples_into_fade = current_sample_pos - (stream_samples_amount - fade_sample_length);
-            if (samples_into_fade + samples_to_do > 0) {
-                gint j,k;
-                for (j=0;j<samples_to_do;j++,samples_into_fade++) {
-                    if (samples_into_fade > 0) {
-                        gdouble fadedness = (gdouble)(fade_sample_length-samples_into_fade)/fade_sample_length;
-                        for (k=0;k<vgmstream->channels;k++) {
-                            buffer[j*vgmstream->channels+k] =
-                                (gshort)(buffer[j*vgmstream->channels+k]*fadedness);
-                        }
-                    }
+            if (samples_into_fade + samples_to_do > 0) 
+            {
+              debugMessage("start fading");
+              gint j,k;
+              for (j=0; j < samples_to_do; ++j, ++samples_into_fade) 
+              {
+                if (samples_into_fade > 0) 
+                {
+                  gdouble fadedness = (gdouble)(fade_sample_length-samples_into_fade)/fade_sample_length;
+                  for (k=0; k < vgmstream->channels; ++k) 
+                  {
+                      buffer[j*vgmstream->channels+k] = (gshort)(buffer[j*vgmstream->channels+k]*fadedness);
+                  }
                 }
+              }
             }
           }
 
-          // pass it on
-        // playback->pass_audio(playback,FMT_S16_LE,vgmstream->channels , l , buffer , playing );
+        // pass it on
         playback->output->write_audio(buffer, sizeof(buffer));
         current_sample_pos += samples_to_do;
       }
     }
     else
     {
-      debugMessage("waiting for track ending");
       // at EOF
+      debugMessage("waiting for track ending");
       while (playback->output->buffer_playing())
         g_usleep(10000);
 
-      playing = FALSE;
       // this effectively ends the loop
+      playing = FALSE;
     }
   }
   debugMessage("track ending");
@@ -194,6 +197,7 @@ void vgmstream_play(InputPlayback *playback, const char *filename,
     goto end_thread;
   }
 
+  //FMT_S16_LE is the simple wav-format
   if (!playback->output->open_audio(FMT_S16_LE, vgmstream->sample_rate, vgmstream->channels))
   {
     printf("couldn't open audio device\n");
@@ -208,9 +212,10 @@ void vgmstream_play(InputPlayback *playback, const char *filename,
 
   //set Tuple for track info
   Tuple * tuple = tuple_new_from_filename(filename);
-  tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
   tuple_set_int(tuple, FIELD_BITRATE, NULL, rate);
-  //tuple_set_str(tuple,FIELD_QUALITY , NULL, "lossless"); //eigen ?erweitern?
+  if (!vgmstream_cfg.loop_forever)
+    tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
+  
   playback->set_tuple(playback, tuple);
 
   playback->set_pb_ready(playback);
@@ -226,6 +231,10 @@ void vgmstream_init()
 {
   debugMessage("init threads");
   vgmstream_cfg_load();
+  printf("Settings:\n\
+    \tLoops: %i\n\
+    \tFadeLength: %f\n\
+    \tFadeDelay: %f\n", vgmstream_cfg.loop_count, vgmstream_cfg.fade_length, vgmstream_cfg.fade_delay);
   ctrl_cond = g_cond_new();
   ctrl_mutex = g_mutex_new();
   debugMessage("after init threads");
@@ -261,9 +270,10 @@ void vgmstream_stop(InputPlayback *playback)
     g_mutex_unlock(ctrl_mutex);
   }
   // close audio output
+  playback->output->abort_write();
   playback->output->close_audio();
   // cleanup
-  // close_stream();
+  close_stream();
 }
 
 void vgmstream_pause(InputPlayback *playback, gshort paused)
@@ -296,10 +306,14 @@ Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
 
   vgm = init_vgmstream_from_STREAMFILE(open_vfs(filename));
   tuple = tuple_new_from_filename(filename);
-  ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgm) * 1000LL / vgm->sample_rate;
+  if (vgmstream_cfg.loop_forever)
+    return tuple;
+
+  ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgm);
+  ms = ms * 1000LL / vgm->sample_rate;
   
   tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
-  printf("%i\n", ms);
+  debugMessage(printf("%i\n", ms));
   return tuple;
 }
 
@@ -308,7 +322,6 @@ Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
 
 TODO:
   free string warning
-  get_vgmstream_play_samples returns strange value
   
 
 */

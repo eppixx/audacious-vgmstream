@@ -9,16 +9,16 @@ void debugMessage(char *str);
 
 //default-values
 #define DEFAULT_FADE_SECONDS 0
-#define DEFAULT_FADE_DELAY_SECONDS 0
+#define DEFAULT_FADE_DELAY_SECONDS 3
 #define DEFAULT_LOOP_COUNT 2
 #define DEFUALT_LOOP_FOREVER FALSE
 
 typedef struct
 {
+	gboolean loop_forever;
+	gint loop_count;
 	gfloat fade_length;
 	gfloat fade_delay;
-	gint loop_count;
-	gboolean loop_forever;
 } Settings;
 
 extern Settings vgmstream_cfg;
