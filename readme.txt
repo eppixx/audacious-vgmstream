@@ -1,5 +1,27 @@
 vgmstream
 
+
+++++++++++++++++NOTE++++++++++++++++
+This repository was created with the intend to port the audacious plugin to
+version 3. The main repository for vmgstream is at
+http://sourceforge.net/projects/vgmstream/. After the port is integrated
+into the main project I strongly recommend using their repository.
+
+These instructions asumes that you use an ubuntu-based Linux distribution:
+sudo apt-get install audacious-dev libmpg123-dev libvorbis-dev libglib2.0-dev libgtk2.0-dev libpango1.0-dev autoconf automake libtool gcc make
+git clone git@github.com:eppixx/audacious-vgmstream.git
+cd audacious-vgmstream
+./bootstrap
+./configure
+make -f Makefile.unix
+sudo make -f Makefile.unix install
+
+If there were no errors after these instructions you can now use vgmstream
+with audacious
+
+
+
+
 This is vgmstream, a library for playing streamed audio from video games.
 It is very much under development. There are two end-user bits: a command
 line decoder called "test.exe", and a Winamp plugin called "in_vgmstream".
