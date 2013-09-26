@@ -23,7 +23,7 @@ gint stream_samples_amount;
 static void close_stream();
 
 //threads
-GCond *ctrl_cond = NULL;
+GCond  *ctrl_cond  = NULL;
 GMutex *ctrl_mutex = NULL;
 
 //flags
@@ -39,7 +39,6 @@ static void* vgmstream_play_loop(InputPlayback *playback)
 
   //local variables
   gshort buffer[576*vgmstream->channels];
-  glong l;
   gint seek_needed_samples;
   gint samples_to_do;
   gint current_sample_pos = 0;
@@ -47,9 +46,9 @@ static void* vgmstream_play_loop(InputPlayback *playback)
 
   //init loop variables
   decode_seek = -1;
-  playing = TRUE;
-  eof = FALSE;
-  end_thread = FALSE;
+  playing     = TRUE;
+  eof         = FALSE;
+  end_thread  = FALSE;
         
   gint max_buffer_samples = sizeof(buffer)/sizeof(buffer[0])/vgmstream->channels;
   if (vgmstream->loop_flag)
@@ -122,8 +121,7 @@ static void* vgmstream_play_loop(InputPlayback *playback)
     {
       // read data and pass onward
       samples_to_do = min(max_buffer_samples, stream_samples_amount - (current_sample_pos + max_buffer_samples));
-      l = (samples_to_do * vgmstream->channels*2);
-      if (!l)
+      if (!(samples_to_do) || !(vgmstream->channels))
       {
         debugMessage("set eof flag");
         //flag will be triggered on next run through loop
@@ -188,11 +186,13 @@ void vgmstream_play(InputPlayback *playback, const char *filename,
   VFSFile * file, int start_time, int stop_time, bool_t pause)
 {
   debugMessage("start play");
-  vgmstream = init_vgmstream_from_STREAMFILE(open_vfs(filename));
-
+  STREAMFILE *streamfile = open_vfs(filename);
+  vgmstream = init_vgmstream_from_STREAMFILE(streamfile);
+  close_streamfile(streamfile);
+  
   if (!vgmstream || vgmstream->channels <= 0)  
   {
-    printf("Channels are zero or couldn't init plugin\n");
+    printf("Error::Channels are zero or couldn't init plugin\n");
     close_stream();
     goto end_thread;
   }
@@ -200,24 +200,24 @@ void vgmstream_play(InputPlayback *playback, const char *filename,
   //FMT_S16_LE is the simple wav-format
   if (!playback->output->open_audio(FMT_S16_LE, vgmstream->sample_rate, vgmstream->channels))
   {
-    printf("couldn't open audio device\n");
+    printf("Error::Couldn't open audio device\n");
     close_stream();
     goto end_thread;
   }
 
   stream_samples_amount = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgmstream);
-  printf("%i\n", stream_samples_amount);
-  gint ms = (stream_samples_amount * 1000LL) / vgmstream->sample_rate;
+  gint ms   = (stream_samples_amount * 1000LL) / vgmstream->sample_rate;
   gint rate = vgmstream->sample_rate * 2 * vgmstream->channels;
 
   //set Tuple for track info
+  //if loop_forever don't set FIELD_LENGTH
   Tuple * tuple = tuple_new_from_filename(filename);
   tuple_set_int(tuple, FIELD_BITRATE, NULL, rate);
   if (!vgmstream_cfg.loop_forever)
     tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
-  
   playback->set_tuple(playback, tuple);
 
+  //tell audacious we're ready and start play_loop
   playback->set_pb_ready(playback);
   vgmstream_play_loop(playback);
 
@@ -231,10 +231,6 @@ void vgmstream_init()
 {
   debugMessage("init threads");
   vgmstream_cfg_load();
-  printf("Settings:\n\
-    \tLoops: %i\n\
-    \tFadeLength: %f\n\
-    \tFadeDelay: %f\n", vgmstream_cfg.loop_count, vgmstream_cfg.fade_length, vgmstream_cfg.fade_delay);
   ctrl_cond = g_cond_new();
   ctrl_mutex = g_mutex_new();
   debugMessage("after init threads");
@@ -300,28 +296,29 @@ void vgmstream_mseek(InputPlayback *playback, gint ms)
 Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
 {
   debugMessage("probe for tuple");
-  Tuple       *tuple;
-  glong        ms;
-  VGMSTREAM   *vgm;
+  Tuple       *tuple      = NULL;
+  gint         ms;
+  gint         rate;
+  VGMSTREAM   *vgmstream  = NULL;
+  STREAMFILE  *streamfile = NULL;
 
-  vgm = init_vgmstream_from_STREAMFILE(open_vfs(filename));
+  streamfile = open_vfs(filename);
+  vgmstream  = init_vgmstream_from_STREAMFILE(streamfile);
+
   tuple = tuple_new_from_filename(filename);
-  if (vgmstream_cfg.loop_forever)
-    return tuple;
-
-  ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgm);
-  ms = ms * 1000LL / vgm->sample_rate;
+  rate  = vgmstream->sample_rate * 2 * vgmstream->channels;
+  tuple_set_int(tuple, FIELD_BITRATE, NULL, rate);
   
-  tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);
-  debugMessage(printf("%i\n", ms));
+  //if loop_forever return tuple with empty FIELD_LENGTH
+  if (!vgmstream_cfg.loop_forever)
+  {
+    ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgmstream) 
+      * 1000LL / vgmstream->sample_rate;
+    tuple_set_int(tuple, FIELD_LENGTH, NULL, ms);  
+  }
+
+  close_streamfile(streamfile);
+  close_vgmstream(vgmstream);
   return tuple;
 }
 
-
-/*
-
-TODO:
-  free string warning
-  
-
-*/

@@ -6,7 +6,30 @@
 #include "settings.h"
 #include "version.h"
 
-#define CFG_ID "vgmstream"
+#define CFG_ID "vgmstream"  //ID for storing in audacious
+
+// //default-values for Settings
+#define DEFAULT_FADE_LENGTH "0"   //tenth seconds so we can store in int
+#define DEFAULT_FADE_DELAY "30"   //tenth seconds so we can store in int
+#define DEFAULT_LOOP_COUNT "2"
+#define DEFUALT_LOOP_FOREVER "0"
+
+static const gchar* const defaults[] = 
+{
+  "loop_forever", DEFUALT_LOOP_FOREVER,
+  "loop_count",   DEFAULT_LOOP_COUNT,
+  "fade_length",  DEFAULT_FADE_LENGTH,
+  "fade_delay",   DEFAULT_FADE_DELAY,
+  NULL 
+};
+
+const char vgmstream_about[] =
+{
+  "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
+  "audacious-vgmstream originally written by Todd Jeffreys (http://voidpointer.org/)\n"
+  "ported to audacious 3 by Thomas Eppers\n"
+  "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
+};
 
 Settings vgmstream_cfg;
 
@@ -15,24 +38,6 @@ static GtkWidget *loop_count;    // Spinbutton
 static GtkWidget *fade_length;   // SpinButton
 static GtkWidget *fade_delay;    // SpinButton
 static GtkWidget *loop_forever;  // CheckBox
-
-static GtkWidget *window_about;  // About Window
-
-const char vgmstream_about[] =
-{
-  "audacious-vgmstream version: " AUDACIOUSVGMSTREAM_VERSION "\n\n"
-  "audacious-vgmstream originally written by Todd Jeffreys (http://voidpointer.org/)\nported to aduacious 3 by Thomas Eppers\n"
-  "vgmstream written by hcs, FastElbja, manakoAT, and bxaimc (http://www.sf.net/projects/vgmstream)"
-};
-
-static const gchar* const defaults[] = 
-{
-  "fade_seconds", "0",
-  "fade_delayseconds", "0",
-  "loop_count", "2",
-  "loop_forever", "FALSE",
-  NULL 
-};
 
 static void on_loop_forever_changed();
 static void on_cancel();
@@ -47,9 +52,9 @@ void vgmstream_cfg_load()
   aud_config_set_defaults(CFG_ID, defaults);
 
   vgmstream_cfg.loop_forever = aud_get_bool(CFG_ID, "loop_forever");
-  vgmstream_cfg.loop_count = aud_get_int(CFG_ID, "loop_count");
-  vgmstream_cfg.fade_length = aud_get_int(CFG_ID, "fade_length") * 0.1;
-  vgmstream_cfg.fade_delay = aud_get_int(CFG_ID, "fade_delay") * 0.1;
+  vgmstream_cfg.loop_count   = aud_get_int (CFG_ID, "loop_count");
+  vgmstream_cfg.fade_length  = aud_get_int (CFG_ID, "fade_length") * 0.1f;
+  vgmstream_cfg.fade_delay   = aud_get_int (CFG_ID, "fade_delay")  * 0.1f;
 }
 
 //we multiply with 10 to be able to store integer
@@ -57,9 +62,9 @@ void vgmstream_cfg_safe()
 {
   debugMessage("cfg_save called");
   aud_set_bool(CFG_ID, "loop_forever", vgmstream_cfg.loop_forever);
-  aud_set_int(CFG_ID, "loop_count", vgmstream_cfg.loop_count);
-  aud_set_int(CFG_ID, "fade_length", (gint)vgmstream_cfg.fade_length * 10);
-  aud_set_int(CFG_ID, "fade_delay", (gint)vgmstream_cfg.fade_delay * 10);
+  aud_set_int(CFG_ID, "loop_count",    vgmstream_cfg.loop_count);
+  aud_set_int(CFG_ID, "fade_length",   (gint)vgmstream_cfg.fade_length * 10);
+  aud_set_int(CFG_ID, "fade_delay",    (gint)vgmstream_cfg.fade_delay  * 10);
 }
 
 void vgmstream_cfg_ui()
@@ -72,27 +77,26 @@ void vgmstream_cfg_ui()
   GtkWidget     *ok;          // OK-Button
   GtkWidget     *cancel;      // Cancel-Button
   
-  GtkWidget     *label;
+  GtkWidget     *label;       // label for strings 
   GtkAdjustment *adjustment;  // adjustment for SpinButton
-  GtkWidget     *button;      // SpinButton
   
   if (window)
   {
-    gtk_window_present(window);
+    gtk_window_present(GTK_WINDOW(window));
     return;
   }
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG );
   gtk_window_set_title(GTK_WINDOW(window), (gchar *)"VGMStream Decoder - Config");
-  gtk_container_set_border_width(GTK_CONTAINER(window), 25);
+  gtk_container_set_border_width(GTK_CONTAINER(window), 15);
 
   vbox = gtk_vbox_new (FALSE, 5);
 
   // loop forever
   loop_forever = gtk_check_button_new_with_label("Loop Forever");
   g_signal_connect (loop_forever, "toggled", G_CALLBACK (on_loop_forever_changed), NULL);
-  gtk_toggle_button_set_active(loop_forever, vgmstream_cfg.loop_forever);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(loop_forever), vgmstream_cfg.loop_forever);
   gtk_container_add(GTK_CONTAINER (vbox), loop_forever);
 
   // loop count
@@ -122,6 +126,7 @@ void vgmstream_cfg_ui()
   gtk_container_add(GTK_CONTAINER (hbox), fade_delay);
   gtk_container_add(GTK_CONTAINER (vbox), hbox);
 
+  //buttons
   bbox = gtk_hbox_new(TRUE, 5);
   // cancel button
   cancel = gtk_button_new_with_label((gchar *)"Cancel");
@@ -148,12 +153,12 @@ void vgmstream_cfg_ui()
   gtk_widget_show_all (window);
 }
 
-//when the loop_forever checkbox is activated it isn't possible
-//to change the other values
+//when the loop_forever checkbox is activated the other options
+//are disabled/unsensitive
 static void on_loop_forever_changed()
 {
   debugMessage("on loop forever changed");
-  if (gtk_toggle_button_get_active(loop_forever))
+  if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(loop_forever)))
   {
     debugMessage("unsensitive");
     gtk_widget_set_sensitive(loop_count, FALSE);
@@ -178,10 +183,10 @@ static void on_cancel()
 static void on_OK()
 {
   debugMessage("clicked OK on configure");
-  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(loop_forever);
-  vgmstream_cfg.loop_count = gtk_spin_button_get_value_as_int(loop_count);
-  vgmstream_cfg.fade_length = gtk_spin_button_get_value(fade_length);
-  vgmstream_cfg.fade_delay = gtk_spin_button_get_value(fade_delay);
+  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(loop_forever));
+  vgmstream_cfg.loop_count   = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(loop_count));
+  vgmstream_cfg.fade_length  = gtk_spin_button_get_value(GTK_SPIN_BUTTON(fade_length));
+  vgmstream_cfg.fade_delay   = gtk_spin_button_get_value(GTK_SPIN_BUTTON(fade_delay));
   vgmstream_cfg_safe();
   window = NULL;
 }
@@ -190,15 +195,14 @@ void vgmstream_cfg_about()
 {
   debugMessage("called cfg_about");
 
-  static GtkWidget * about_box;
-  audgui_simple_message (& about_box, GTK_MESSAGE_INFO,
+  static GtkWidget *about_window;
+  audgui_simple_message (&about_window, GTK_MESSAGE_INFO,
     "About the VGMStream Decoder", vgmstream_about);
 }
 
-void debugMessage(char *str)
+void debugMessage(const char *str)
 {
-  if (DEBUG)
-  {
-    printf("%s\n", str);
-  }
+  #ifdef DEBUG
+  printf("Debug::%s\n", str);
+  #endif
 }

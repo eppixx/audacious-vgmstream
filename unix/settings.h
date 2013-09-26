@@ -4,25 +4,20 @@
 #include <glib.h>
 
 // function for debug output
-#define DEBUG TRUE
-void debugMessage(char *str);
+#define DEBUG 1
+void debugMessage(const char *str);
 
-//default-values
-#define DEFAULT_FADE_SECONDS 0
-#define DEFAULT_FADE_DELAY_SECONDS 3
-#define DEFAULT_LOOP_COUNT 2
-#define DEFUALT_LOOP_FOREVER FALSE
-
+//defines struct for Settings
 typedef struct
 {
 	gboolean loop_forever;
-	gint loop_count;
-	gfloat fade_length;
-	gfloat fade_delay;
+	gint     loop_count;
+	gfloat   fade_length;
+	gfloat   fade_delay;
 } Settings;
 
-extern Settings vgmstream_cfg;
-extern const char vgmstream_about[];
+extern Settings vgmstream_cfg;			//struct that stores settings
+extern const char vgmstream_about[];	//string for about dialog
 
 void vgmstream_cfg_load();
 void vgmstream_cfg_save();
