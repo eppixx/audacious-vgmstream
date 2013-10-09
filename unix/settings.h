@@ -4,7 +4,7 @@
 #include <glib.h>
 
 // function for debug output
-// #define DEBUG 1
+#define DEBUG 1
 void debugMessage(const char *str);
 
 //defines struct for Settings

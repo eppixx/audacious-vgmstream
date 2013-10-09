@@ -15,7 +15,7 @@
 void vgmstream_init();
 void vgmstream_gui_about();
 void vgmstream_cfg_ui();
-void vgmstream_destroy();
+void vgmstream_cleanup();
 
 Tuple * vgmstream_probe_for_tuple(const gchar *uri, VFSFile *fd);
 void vgmstream_file_info_box(const gchar *pFile);
@@ -306,7 +306,7 @@ AUD_INPUT_PLUGIN
   // .about_text = vgmstream_about,    //works in version 3.3 and later
   .about = vgmstream_cfg_about,
   .configure = vgmstream_cfg_ui,
-  .cleanup = vgmstream_destroy,
+  .cleanup = vgmstream_cleanup,
   
   //InputPlugin Fields
   .extensions = vgmstream_exts,

@@ -84,7 +84,7 @@ static STREAMFILE *open_vfs_by_VFSFILE(VFSFile *file, const char *path)
   if (!streamfile)
     return NULL;
   
-  /* success, set our pointers */
+  // success, set our pointers
   memset(streamfile, 0, sizeof(VFSSTREAMFILE));
 
   streamfile->sf.read         = (void*)read_vfs;

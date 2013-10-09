@@ -9,8 +9,8 @@
 #define CFG_ID "vgmstream"  //ID for storing in audacious
 
 // //default-values for Settings
-#define DEFAULT_FADE_LENGTH "0"   //tenth seconds so we can store in int
-#define DEFAULT_FADE_DELAY "30"   //tenth seconds so we can store in int
+#define DEFAULT_FADE_LENGTH "0"   //tenth second so we can store in int
+#define DEFAULT_FADE_DELAY "30"   //tenth second so we can store in int
 #define DEFAULT_LOOP_COUNT "2"
 #define DEFUALT_LOOP_FOREVER "0"
 
@@ -34,10 +34,10 @@ const char vgmstream_about[] =
 Settings vgmstream_cfg;
 
 static GtkWidget *window;        // Configure Window
+static GtkWidget *loop_forever;  // CheckBox
 static GtkWidget *loop_count;    // Spinbutton
 static GtkWidget *fade_length;   // SpinButton
 static GtkWidget *fade_delay;    // SpinButton
-static GtkWidget *loop_forever;  // CheckBox
 
 static void on_loop_forever_changed();
 static void on_cancel();

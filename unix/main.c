@@ -38,11 +38,11 @@ static void* vgmstream_play_loop(InputPlayback *playback)
   debugMessage("start loop");
 
   //local variables
-  gshort buffer[576*vgmstream->channels];
-  gint seek_needed_samples;
-  gint samples_to_do;
-  gint current_sample_pos = 0;
-  gint fade_sample_length;
+  gshort  buffer[576*vgmstream->channels];
+  gint    seek_needed_samples;
+  gint    samples_to_do;
+  gint    current_sample_pos = 0;
+  gint    fade_sample_length;
 
   //init loop variables
   decode_seek = -1;
@@ -162,9 +162,9 @@ static void* vgmstream_play_loop(InputPlayback *playback)
     else
     {
       // at EOF
-      debugMessage("waiting for track ending");
-      while (playback->output->buffer_playing())
-        g_usleep(10000);
+      // debugMessage("waiting for track ending");
+      // while (playback->output->buffer_playing())
+      //   g_usleep(10000);
 
       // this effectively ends the loop
       playing = FALSE;
@@ -236,7 +236,7 @@ void vgmstream_init()
   debugMessage("after init threads");
 }
 
-void vgmstream_destroy()
+void vgmstream_cleanup()
 {
   debugMessage("destroy threads");
   g_cond_free(ctrl_cond);
