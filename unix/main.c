@@ -159,19 +159,13 @@ static void* vgmstream_play_loop(InputPlayback *playback)
         current_sample_pos += samples_to_do;
       }
     }
-    else
+    else // at EOF
     {
-      // at EOF
-      // debugMessage("waiting for track ending");
-      // while (playback->output->buffer_playing())
-      //   g_usleep(10000);
-
       // this effectively ends the loop
       playing = FALSE;
     }
   }
   debugMessage("track ending");
-  playback->output->close_audio();
 
  exit_thread:
   decode_seek = -1;
@@ -267,7 +261,6 @@ void vgmstream_stop(InputPlayback *playback)
   }
   // close audio output
   playback->output->abort_write();
-  playback->output->close_audio();
   // cleanup
   close_stream();
 }
