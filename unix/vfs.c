@@ -29,7 +29,9 @@ static size_t read_vfs(VFSSTREAMFILE *streamfile, uint8_t *dest, off_t offset, s
   // if the offsets don't match, then we need to perform a seek
   if (streamfile->offset != offset) 
   {
-    vfs_fseek(streamfile->vfsFile, offset, SEEK_SET);
+    if (vfs_fseek(streamfile->vfsFile, offset, SEEK_SET) < 0)
+      return 0;
+
     streamfile->offset = offset;
   }
   

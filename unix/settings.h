@@ -22,6 +22,5 @@ extern const char vgmstream_about[];	//string for about dialog
 void vgmstream_cfg_load();
 void vgmstream_cfg_save();
 void vgmstream_cfg_ui();
-void vgmstream_cfg_about();
 
 #endif

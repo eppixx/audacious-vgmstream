@@ -1,28 +1,16 @@
 #include <glib.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <stdlib.h>
 
 #include <audacious/plugin.h>
 #include <audacious/i18n.h>
 
 #include "../src/vgmstream.h"
+#include "main.h"
 #include "version.h"
 #include "vfs.h"
 #include "settings.h"
 
-
-void vgmstream_init();
-void vgmstream_gui_about();
-void vgmstream_cfg_ui();
-void vgmstream_cleanup();
-
-Tuple * vgmstream_probe_for_tuple(const gchar *uri, VFSFile *fd);
-void vgmstream_file_info_box(const gchar *pFile);
-void vgmstream_play(InputPlayback *context);
-void vgmstream_pause(InputPlayback *context,gshort paused);
-void vgmstream_mseek(InputPlayback *context, int ms);
-void vgmstream_stop(InputPlayback *context);
 
 static const gchar *vgmstream_exts [] = 
 {
@@ -303,18 +291,13 @@ AUD_INPUT_PLUGIN
   //Common Fields
   .name = "VGMStream Decoder",
   .init = vgmstream_init,
-  // .about_text = vgmstream_about,    //works in version 3.3 and later
-  .about = vgmstream_cfg_about,
+  .about_text = vgmstream_about,
   .configure = vgmstream_cfg_ui,
-  .cleanup = vgmstream_cleanup,
   
   //InputPlugin Fields
   .extensions = vgmstream_exts,
   .probe_for_tuple = vgmstream_probe_for_tuple,
   .play = vgmstream_play,
-  .pause = vgmstream_pause,
-  .mseek = vgmstream_mseek,
-  .stop = vgmstream_stop,
 )
 
 
