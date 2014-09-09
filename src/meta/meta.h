@@ -160,6 +160,8 @@ VGMSTREAM * init_vgmstream_fsb4(STREAMFILE * streamFile);
 
 VGMSTREAM * init_vgmstream_fsb4_wav(STREAMFILE * streamFile);
 
+VGMSTREAM * init_vgmstream_fsb5(STREAMFILE * streamFile);
+
 VGMSTREAM * init_vgmstream_fsb_mpeg(STREAMFILE * streamFile);
 
 VGMSTREAM * init_vgmstream_rwx(STREAMFILE * streamFile);
@@ -615,5 +617,13 @@ VGMSTREAM * init_vgmstream_ps2_2pfs(STREAMFILE* streamFile);
 VGMSTREAM * init_vgmstream_rsd6oogv(STREAMFILE* streamFile);
 
 VGMSTREAM * init_vgmstream_ubi_ckd(STREAMFILE* streamFile);
+
+VGMSTREAM * init_vgmstream_ps2_vbk(STREAMFILE* streamFile);
+
+VGMSTREAM * init_vgmstream_otm(STREAMFILE* streamFile);
+
+VGMSTREAM * init_vgmstream_bcstm(STREAMFILE* streamFile);
+
+VGMSTREAM * init_vgmstream_bfwav(STREAMFILE* streamFile);
 
 #endif

@@ -294,7 +294,9 @@ bool input_vgmstream::g_is_our_path(const char * p_path,const char * p_extension
 	if(!stricmp_utf8(p_extension,"baka")) return 1;
 	if(!stricmp_utf8(p_extension,"baf")) return 1;
 	if(!stricmp_utf8(p_extension,"bar")) return 1;
+	if(!stricmp_utf8(p_extension,"bcstm")) return 1;
 	if(!stricmp_utf8(p_extension,"bcwav")) return 1;
+	if(!stricmp_utf8(p_extension,"bfwav")) return 1;
 	if(!stricmp_utf8(p_extension,"bg00")) return 1;
 	if(!stricmp_utf8(p_extension,"bgw")) return 1;
 	if(!stricmp_utf8(p_extension,"bh2pcm")) return 1;
@@ -406,6 +408,7 @@ bool input_vgmstream::g_is_our_path(const char * p_path,const char * p_extension
 	if(!stricmp_utf8(p_extension,"nwa")) return 1;
 
 	if(!stricmp_utf8(p_extension,"omu")) return 1;
+	if(!stricmp_utf8(p_extension,"otm")) return 1;
 
 	if(!stricmp_utf8(p_extension,"p2bt")) return 1;
 	if(!stricmp_utf8(p_extension,"p3d")) return 1;
@@ -495,6 +498,7 @@ bool input_vgmstream::g_is_our_path(const char * p_path,const char * p_extension
 	if(!stricmp_utf8(p_extension,"vas")) return 1;
 	if(!stricmp_utf8(p_extension,"vawx")) return 1;
 	if(!stricmp_utf8(p_extension,"vb")) return 1;
+	if(!stricmp_utf8(p_extension,"vbk")) return 1;
 	if(!stricmp_utf8(p_extension,"vgs")) return 1;
 	if(!stricmp_utf8(p_extension,"vgv")) return 1;
 	if(!stricmp_utf8(p_extension,"vig")) return 1;
@@ -613,7 +617,9 @@ DECLARE_MULTIPLE_FILE_TYPE("AUS Audio File (*.AUS)", aus);
 DECLARE_MULTIPLE_FILE_TYPE("BAKA Audio File (*.BAKA)", baka);
 DECLARE_MULTIPLE_FILE_TYPE("BAF Audio File (*.BAF)", baf);
 DECLARE_MULTIPLE_FILE_TYPE("BAR Audio File (*.BAR)", bar);
+DECLARE_MULTIPLE_FILE_TYPE("BCSTM Audio File (*.BCSTM)", bcstm);
 DECLARE_MULTIPLE_FILE_TYPE("BCWAV Audio File (*.BCWAV)", bcwav);
+DECLARE_MULTIPLE_FILE_TYPE("BFWAV Audio File (*.BFWAV)", bfwav);
 DECLARE_MULTIPLE_FILE_TYPE("BG00 Audio File (*.BG00)", bg00);
 DECLARE_MULTIPLE_FILE_TYPE("BGW Audio File (*.BGW)", bgw);
 DECLARE_MULTIPLE_FILE_TYPE("BH2PCM Audio File (*.BH2PCM)", bh2pcm);
@@ -724,6 +730,7 @@ DECLARE_MULTIPLE_FILE_TYPE("PS2 NPSF Audio File (*.NPSF)", npsf);
 DECLARE_MULTIPLE_FILE_TYPE("NWA Audio File (*.NWA)", nwa);
 
 DECLARE_MULTIPLE_FILE_TYPE("OMU Audio File (*.OMU)", omu);
+DECLARE_MULTIPLE_FILE_TYPE("OTM Audio File (*.OTM)", otm);
 
 DECLARE_MULTIPLE_FILE_TYPE("P2BT Audio File (*.P2BT)", p2bt);
 DECLARE_MULTIPLE_FILE_TYPE("P3D Audio File (*.P3D)", p3d);
@@ -811,6 +818,7 @@ DECLARE_MULTIPLE_FILE_TYPE("UM3 Audio File (*.UM3)", um3);
 DECLARE_MULTIPLE_FILE_TYPE("VAG Audio File (*.VAG)", vag);
 DECLARE_MULTIPLE_FILE_TYPE("VAS Audio File (*.VAS)", vas);
 DECLARE_MULTIPLE_FILE_TYPE("VB Audio File (*.VB)", vb);
+DECLARE_MULTIPLE_FILE_TYPE("VB Audio File (*.VBK)", vbk);
 DECLARE_MULTIPLE_FILE_TYPE("VGS Audio File (*.VGS)", vgs);
 DECLARE_MULTIPLE_FILE_TYPE("VGV Audio File (*.VGV)", vgv);
 DECLARE_MULTIPLE_FILE_TYPE("VIG Audio File (*.VIG)", vig);

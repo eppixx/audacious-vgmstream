@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="libvgmstream"
 	ProjectGUID="{54A6AD11-5369-4895-A06F-E255ABB99B11}"
 	RootNamespace="libvgmstream"
@@ -249,6 +249,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\meta\bcstm.c"
+					>
+				</File>
+				<File
+					RelativePath=".\meta\bfstm.c"
+					>
+				</File>
+				<File
 					RelativePath=".\meta\bgw.c"
 					>
 				</File>
@@ -330,6 +338,10 @@
 				</File>
 				<File
 					RelativePath=".\meta\fsb.c"
+					>
+				</File>
+				<File
+					RelativePath=".\meta\fsb5.c"
 					>
 				</File>
 				<File
@@ -552,6 +564,10 @@
 				</File>
 				<File
 					RelativePath=".\meta\ogg_vorbis_file.c"
+					>
+				</File>
+				<File
+					RelativePath=".\meta\otm.c"
 					>
 				</File>
 				<File
@@ -828,6 +844,10 @@
 				</File>
 				<File
 					RelativePath=".\meta\ps2_vas.c"
+					>
+				</File>
+				<File
+					RelativePath=".\meta\ps2_vbk.c"
 					>
 				</File>
 				<File

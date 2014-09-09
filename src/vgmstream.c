@@ -17,6 +17,7 @@
 VGMSTREAM * (*init_vgmstream_fcns[])(STREAMFILE *streamFile) = {
     init_vgmstream_adx,
     init_vgmstream_brstm,
+    init_vgmstream_bfwav,
     init_vgmstream_nds_strm,
     init_vgmstream_agsc,
     init_vgmstream_ngc_adpdtk,
@@ -86,6 +87,7 @@ VGMSTREAM * (*init_vgmstream_fcns[])(STREAMFILE *streamFile) = {
     init_vgmstream_fsb3,
     init_vgmstream_fsb4,
     init_vgmstream_fsb4_wav,
+    init_vgmstream_fsb5,
     init_vgmstream_rwx,
     init_vgmstream_xwb,
     init_vgmstream_xwb2,
@@ -321,6 +323,9 @@ VGMSTREAM * (*init_vgmstream_fcns[])(STREAMFILE *streamFile) = {
     init_vgmstream_xnbm,
 	init_vgmstream_rsd6oogv,
 	init_vgmstream_ubi_ckd,
+	init_vgmstream_ps2_vbk,
+	init_vgmstream_otm,
+	init_vgmstream_bcstm,
 };
 
 #define INIT_VGMSTREAM_FCNS (sizeof(init_vgmstream_fcns)/sizeof(init_vgmstream_fcns[0]))
@@ -2310,6 +2315,9 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
         case meta_FSB4_WAV:
             snprintf(temp,TEMPSIZE,"FMOD Sample Bank (FSB4) with additional 'WAV' Header");
             break;
+        case meta_FSB5:
+            snprintf(temp,TEMPSIZE,"FMOD Sample Bank (FSB5) Header");
+            break;
         case meta_RWX:
             snprintf(temp,TEMPSIZE,"RWX Header");
             break;
@@ -2947,6 +2955,15 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
             break;
 		case meta_UBI_CKD:
             snprintf(temp,TEMPSIZE,"CKD 'RIFF' Header");
+            break;
+		case meta_PS2_VBK:
+            snprintf(temp,TEMPSIZE,"PS2 VBK Header");
+            break;
+		case meta_OTM:
+            snprintf(temp,TEMPSIZE,"Otomedius OTM Header");
+            break;
+		case meta_CSTM:
+            snprintf(temp,TEMPSIZE,"Nintendo 3DS CSTM Header");
             break;
 		default:
            snprintf(temp,TEMPSIZE,"THEY SHOULD HAVE SENT A POET");
