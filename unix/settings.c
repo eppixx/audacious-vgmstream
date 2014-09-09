@@ -67,6 +67,9 @@ void vgmstream_cfg_safe()
   aud_set_int(CFG_ID, "fade_delay",    (gint)vgmstream_cfg.fade_delay  * 10);
 }
 
+#define gtk_hbox_new(h,s) gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (s))
+#define gtk_vbox_new(h,s) gtk_box_new(GTK_ORIENTATION_VERTICAL, (s))
+
 void vgmstream_cfg_ui()
 {
   debugMessage("called configure");
@@ -189,15 +192,6 @@ static void on_OK()
   vgmstream_cfg.fade_delay   = gtk_spin_button_get_value(GTK_SPIN_BUTTON(fade_delay));
   vgmstream_cfg_safe();
   window = NULL;
-}
-
-void vgmstream_cfg_about()
-{
-  debugMessage("called cfg_about");
-
-  static GtkWidget *about_window;
-  audgui_simple_message (&about_window, GTK_MESSAGE_INFO,
-    "About the VGMStream Decoder", vgmstream_about);
 }
 
 void debugMessage(const char *str)
