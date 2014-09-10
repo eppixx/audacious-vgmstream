@@ -14,13 +14,13 @@
 #define DEFAULT_LOOP_COUNT "2"
 #define DEFUALT_LOOP_FOREVER "0"
 
-static const gchar* const defaults[] = 
+static const gchar* const defaults[] =
 {
   "loop_forever", DEFUALT_LOOP_FOREVER,
   "loop_count",   DEFAULT_LOOP_COUNT,
   "fade_length",  DEFAULT_FADE_LENGTH,
   "fade_delay",   DEFAULT_FADE_DELAY,
-  NULL 
+  NULL
 };
 
 const char vgmstream_about[] =
@@ -67,9 +67,7 @@ void vgmstream_cfg_safe()
   aud_set_int(CFG_ID, "fade_delay",    (gint)vgmstream_cfg.fade_delay  * 10);
 }
 
-#define gtk_hbox_new(h,s) gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (s))
-#define gtk_vbox_new(h,s) gtk_box_new(GTK_ORIENTATION_VERTICAL, (s))
-
+//this function opens the option dialog
 void vgmstream_cfg_ui()
 {
   debugMessage("called configure");
@@ -79,34 +77,34 @@ void vgmstream_cfg_ui()
   GtkWidget     *bbox;        // Box for buttons
   GtkWidget     *ok;          // OK-Button
   GtkWidget     *cancel;      // Cancel-Button
-  
-  GtkWidget     *label;       // label for strings 
+
+  GtkWidget     *label;       // label for strings
   GtkAdjustment *adjustment;  // adjustment for SpinButton
-  
+
   if (window)
   {
     gtk_window_present(GTK_WINDOW(window));
     return;
   }
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG );
-  gtk_window_set_title(GTK_WINDOW(window), (gchar *)"VGMStream Decoder - Config");
-  gtk_container_set_border_width(GTK_CONTAINER(window), 15);
+  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_type_hint(GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DIALOG );
+  gtk_window_set_title(GTK_WINDOW (window), (gchar *) "VGMStream Decoder - Config");
+  gtk_container_set_border_width(GTK_CONTAINER (window), 15);
 
-  vbox = gtk_vbox_new (FALSE, 5);
+  vbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (5));
 
   // loop forever
   loop_forever = gtk_check_button_new_with_label("Loop Forever");
   g_signal_connect (loop_forever, "toggled", G_CALLBACK (on_loop_forever_changed), NULL);
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(loop_forever), vgmstream_cfg.loop_forever);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON (loop_forever), vgmstream_cfg.loop_forever);
   gtk_container_add(GTK_CONTAINER (vbox), loop_forever);
 
   // loop count
   label = gtk_label_new("Loop count");
   adjustment = gtk_adjustment_new(vgmstream_cfg.loop_count, 1, 10, 1, 0, 0);
   loop_count = gtk_spin_button_new(adjustment, 1.0, 0);
-  hbox = gtk_hbox_new(FALSE, 5);
+  hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (5));
   gtk_container_add(GTK_CONTAINER (hbox), label);
   gtk_container_add(GTK_CONTAINER (hbox), loop_count);
   gtk_container_add(GTK_CONTAINER (vbox), hbox);
@@ -115,7 +113,7 @@ void vgmstream_cfg_ui()
   label = gtk_label_new("Fade length");
   adjustment = gtk_adjustment_new(vgmstream_cfg.fade_length, 0, 10, 0.2, 0, 0);
   fade_length = gtk_spin_button_new(adjustment, 0.2, 1);
-  hbox = gtk_hbox_new(FALSE, 5);
+  hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (5));
   gtk_container_add(GTK_CONTAINER (hbox), label);
   gtk_container_add(GTK_CONTAINER (hbox), fade_length);
   gtk_container_add(GTK_CONTAINER (vbox), hbox);
@@ -124,22 +122,23 @@ void vgmstream_cfg_ui()
   label = gtk_label_new("Fade delay");
   adjustment = gtk_adjustment_new(vgmstream_cfg.fade_delay, 0, 10, 0.2, 0, 0);
   fade_delay = gtk_spin_button_new(adjustment, 0.2, 1);
-  hbox = gtk_hbox_new(FALSE,5);
+  hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (5));
   gtk_container_add(GTK_CONTAINER (hbox), label);
   gtk_container_add(GTK_CONTAINER (hbox), fade_delay);
   gtk_container_add(GTK_CONTAINER (vbox), hbox);
 
-  //buttons
-  bbox = gtk_hbox_new(TRUE, 5);
+  //buttonbox
+  bbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, (5));
+
   // cancel button
-  cancel = gtk_button_new_with_label((gchar *)"Cancel");
-  g_signal_connect (cancel, "clicked", G_CALLBACK (on_cancel), NULL);
-  g_signal_connect_swapped (cancel, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+  cancel = gtk_button_new_with_label((gchar *) "Cancel");
+  g_signal_connect(cancel, "clicked", G_CALLBACK (on_cancel), NULL);
+  g_signal_connect_swapped(cancel, "clicked", G_CALLBACK (gtk_widget_destroy), window);
   gtk_container_add(GTK_CONTAINER (bbox), cancel);
-  
+
   // ok button
-  ok = gtk_button_new_with_label((gchar *)"OK");
-  g_signal_connect (ok, "clicked", G_CALLBACK (on_OK), NULL);
+  ok = gtk_button_new_with_label((gchar *) "OK");
+  g_signal_connect(ok, "clicked", G_CALLBACK (on_OK), NULL);
   g_signal_connect_swapped (ok, "clicked", G_CALLBACK (gtk_widget_destroy), window);
   gtk_container_add(GTK_CONTAINER (bbox), ok);
   gtk_container_add(GTK_CONTAINER (vbox), bbox);
@@ -153,7 +152,7 @@ void vgmstream_cfg_ui()
     gtk_widget_set_sensitive(fade_delay, FALSE);
   }
 
-  gtk_widget_show_all (window);
+  gtk_widget_show_all(window);
 }
 
 //when the loop_forever checkbox is activated the other options
@@ -161,7 +160,7 @@ void vgmstream_cfg_ui()
 static void on_loop_forever_changed()
 {
   debugMessage("on loop forever changed");
-  if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(loop_forever)))
+  if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON (loop_forever)))
   {
     debugMessage("unsensitive");
     gtk_widget_set_sensitive(loop_count, FALSE);
@@ -186,10 +185,10 @@ static void on_cancel()
 static void on_OK()
 {
   debugMessage("clicked OK on configure");
-  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(loop_forever));
-  vgmstream_cfg.loop_count   = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(loop_count));
-  vgmstream_cfg.fade_length  = gtk_spin_button_get_value(GTK_SPIN_BUTTON(fade_length));
-  vgmstream_cfg.fade_delay   = gtk_spin_button_get_value(GTK_SPIN_BUTTON(fade_delay));
+  vgmstream_cfg.loop_forever = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON (loop_forever));
+  vgmstream_cfg.loop_count   = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON (loop_count));
+  vgmstream_cfg.fade_length  = gtk_spin_button_get_value(GTK_SPIN_BUTTON (fade_length));
+  vgmstream_cfg.fade_delay   = gtk_spin_button_get_value(GTK_SPIN_BUTTON (fade_delay));
   vgmstream_cfg_safe();
   window = NULL;
 }

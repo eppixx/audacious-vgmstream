@@ -70,7 +70,7 @@ static void vgmstream_play_loop(void)
       if (samples_to_do >= 0)
       {
         debugMessage("render forward");
-        
+
         //render till seeked sample
         while (samples_to_do >0)
         {
@@ -86,44 +86,44 @@ static void vgmstream_play_loop(void)
       }
     }
 
-      /******************************************
-                        Playback
-       ******************************************/
-      // read data and pass onward
-      samples_to_do = MIN(max_buffer_samples, stream_samples_amount - (current_sample_pos + max_buffer_samples));
-      if (!(samples_to_do) || !(vgmstream->channels))
-        break;
-      else
-      {
-        // render audio data and write to buffer
-        render_vgmstream(buffer,samples_to_do,vgmstream);
+    /******************************************
+                      Playback
+     ******************************************/
+    // read data and pass onward
+    samples_to_do = MIN(max_buffer_samples, stream_samples_amount - (current_sample_pos + max_buffer_samples));
+    if (!(samples_to_do) || !(vgmstream->channels))
+      break;
+    else
+    {
+      // render audio data and write to buffer
+      render_vgmstream(buffer,samples_to_do,vgmstream);
 
-        // fade!
-        if (vgmstream->loop_flag && fade_sample_length > 0 && !vgmstream_cfg.loop_forever) 
-        {
-            gint samples_into_fade = current_sample_pos - (stream_samples_amount - fade_sample_length);
-            if (samples_into_fade + samples_to_do > 0) 
+      // fade!
+      if (vgmstream->loop_flag && fade_sample_length > 0 && !vgmstream_cfg.loop_forever)
+      {
+          gint samples_into_fade = current_sample_pos - (stream_samples_amount - fade_sample_length);
+          if (samples_into_fade + samples_to_do > 0)
+          {
+            debugMessage("start fading");
+            gint j,k;
+            for (j=0; j < samples_to_do; ++j, ++samples_into_fade)
             {
-              debugMessage("start fading");
-              gint j,k;
-              for (j=0; j < samples_to_do; ++j, ++samples_into_fade) 
+              if (samples_into_fade > 0)
               {
-                if (samples_into_fade > 0) 
+                gdouble fadedness = (gdouble)(fade_sample_length-samples_into_fade)/fade_sample_length;
+                for (k=0; k < vgmstream->channels; ++k)
                 {
-                  gdouble fadedness = (gdouble)(fade_sample_length-samples_into_fade)/fade_sample_length;
-                  for (k=0; k < vgmstream->channels; ++k) 
-                  {
-                      buffer[j*vgmstream->channels+k] = (gshort)(buffer[j*vgmstream->channels+k]*fadedness);
-                  }
+                    buffer[j*vgmstream->channels+k] = (gshort)(buffer[j*vgmstream->channels+k]*fadedness);
                 }
               }
             }
           }
+        }
 
-        // pass it on
-        aud_input_write_audio(buffer, sizeof(buffer));
-        current_sample_pos += samples_to_do;
-      }
+      // pass it on
+      aud_input_write_audio(buffer, sizeof(buffer));
+      current_sample_pos += samples_to_do;
+    }
   }
   debugMessage("track ending");
 
@@ -137,8 +137,8 @@ gboolean vgmstream_play(const gchar *filename, VFSFile *file)
   STREAMFILE *streamfile = open_vfs(filename);
   vgmstream = init_vgmstream_from_STREAMFILE(streamfile);
   close_streamfile(streamfile);
-  
-  if (!vgmstream || vgmstream->channels <= 0)  
+
+  if (!vgmstream || vgmstream->channels <= 0)
   {
     printf("Error::Channels are zero or couldn't init plugin\n");
     close_stream();
@@ -153,13 +153,14 @@ gboolean vgmstream_play(const gchar *filename, VFSFile *file)
     return FALSE;
   }
 
-  stream_samples_amount = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgmstream);
+  stream_samples_amount = get_vgmstream_play_samples(vgmstream_cfg.loop_count,
+    vgmstream_cfg.fade_length, vgmstream_cfg.fade_delay, vgmstream);
   gint ms   = (stream_samples_amount * 1000LL) / vgmstream->sample_rate;
   gint rate = vgmstream->sample_rate * 2 * vgmstream->channels;
 
   //set Tuple for track info
   //if loop_forever don't set FIELD_LENGTH
-  Tuple * tuple = tuple_new_from_filename(filename);
+  Tuple *tuple = tuple_new_from_filename(filename);
   tuple_set_int(tuple, FIELD_BITRATE, rate);
   if (!vgmstream_cfg.loop_forever)
     tuple_set_int(tuple, FIELD_LENGTH, ms);
@@ -203,12 +204,12 @@ Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
   tuple = tuple_new_from_filename(filename);
   rate  = vgmstream->sample_rate * 2 * vgmstream->channels;
   tuple_set_int(tuple, FIELD_BITRATE, rate);
-  
+
   //if loop_forever return tuple with empty FIELD_LENGTH
   if (!vgmstream_cfg.loop_forever)
   {
-    ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count,vgmstream_cfg.fade_length,vgmstream_cfg.fade_delay,vgmstream) 
-      * 1000LL / vgmstream->sample_rate;
+    ms = get_vgmstream_play_samples(vgmstream_cfg.loop_count, vgmstream_cfg.fade_length,
+      vgmstream_cfg.fade_delay, vgmstream) * 1000LL / vgmstream->sample_rate;
     tuple_set_int(tuple, FIELD_LENGTH, ms);
   }
 
@@ -216,4 +217,3 @@ Tuple* vgmstream_probe_for_tuple(const gchar *filename, VFSFile *file)
   close_vgmstream(vgmstream);
   return tuple;
 }
-
